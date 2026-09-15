@@ -36,6 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'bank_soal', label: 'Bank Soal Kejuruan', icon: BookOpenCheck },
     { id: 'ujian', label: 'Jadwal & Buat Ujian', icon: CalendarClock },
     { id: 'monitoring', label: 'Live Monitoring CBT', icon: Activity, badge: 'Realtime' },
+    { id: 'siswa', label: 'Daftar Siswa', icon: Users },
+    { id: 'kelas', label: 'Daftar Kelas', icon: Layers },
     { id: 'analisis', label: 'Analisis Butir Soal', icon: BarChart3 },
     { id: 'remedial', label: 'Program Remedial', icon: RefreshCw },
     { id: 'laporan', label: 'Rekap Nilai & Cetak', icon: FileSpreadsheet }

@@ -72,6 +72,8 @@ const MainLayout: React.FC = () => {
                 />
               )}
               {activeTab === 'monitoring' && <LiveMonitoringView initialExamId={selectedExamId} />}
+              {activeTab === 'siswa' && <AdminUsersView />}
+              {activeTab === 'kelas' && <AdminAcademicView />}
               {(activeTab === 'analisis' || activeTab === 'remedial' || activeTab === 'laporan') && (
                 <AnalyticsView initialExamId={selectedExamId} />
               )}

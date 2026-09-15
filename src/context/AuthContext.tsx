@@ -120,18 +120,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const students = await db.getStudents();
       let foundStudent = students.find(
-        s => (s.nisn && s.nisn === cleanNisn) || s.nis === cleanNisn
+        s => (s.nisn && s.nisn.toLowerCase() === cleanNisn.toLowerCase()) ||
+             (s.nis && s.nis.toLowerCase() === cleanNisn.toLowerCase()) ||
+             (s.profile?.full_name && s.profile.full_name.toLowerCase().includes(cleanNisn.toLowerCase()))
       );
 
       // If student not found, create a temporary guest profile so QR scan still works
       if (!foundStudent) {
-        const guestProfileId = `guest-${cleanNisn}`;
-        const guestStudentId = `student-guest-${cleanNisn}`;
+        const guestProfileId = `guest-${cleanNisn.replace(/\s+/g, '-')}`;
+        const guestStudentId = `student-guest-${cleanNisn.replace(/\s+/g, '-')}`;
+
+        const isName = /[a-zA-Z]/.test(cleanNisn);
+        const displayName = isName ? cleanNisn : `Siswa (${cleanNisn})`;
 
         const guestProfile: Profile = {
           id: guestProfileId,
-          email: `${cleanNisn}@siswa.mitracbt.id`,
-          full_name: `Siswa (${cleanNisn})`,
+          email: `${cleanNisn.replace(/\s+/g, '_')}@siswa.mitracbt.id`,
+          full_name: displayName,
           role: 'siswa',
           created_at: new Date().toISOString()
         };
@@ -141,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           profile_id: guestProfileId,
           nis: cleanNisn,
           nisn: cleanNisn,
-          class_id: '',
+          class_id: 'cls-tkr-10',
           status: 'active',
           profile: guestProfile
         };
@@ -151,11 +156,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!existingProfiles.find(p => p.id === guestProfileId)) {
           existingProfiles.push(guestProfile);
           localStorage.setItem('mitracbt_profiles', JSON.stringify(existingProfiles));
+          fetch('/api/cbt-sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'profiles', data: existingProfiles })
+          }).catch(() => {});
         }
 
         const existingStudents = students.filter(s => s.id !== guestStudentId);
         existingStudents.push(foundStudent);
         localStorage.setItem('mitracbt_students', JSON.stringify(existingStudents));
+        fetch('/api/cbt-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'students', data: existingStudents })
+        }).catch(() => {});
       }
 
       const profiles = await db.getProfiles();

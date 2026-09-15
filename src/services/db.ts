@@ -13,6 +13,34 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 const STORAGE_PREFIX = 'mitracbt_';
 
+// Asynchronous remote sync with Vite dev server sync endpoint
+async function pushToSyncServer(key: string, data: any) {
+  try {
+    await fetch('/api/cbt-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, data })
+    });
+  } catch (err) {
+    // Ignore if offline / detached
+  }
+}
+
+async function fetchFromSyncServer<T>(key: string): Promise<T | null> {
+  try {
+    const res = await fetch(`/api/cbt-sync?key=${encodeURIComponent(key)}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data !== null && json.data !== undefined) {
+        return json.data as T;
+      }
+    }
+  } catch (err) {
+    // Offline fallback
+  }
+  return null;
+}
+
 function getStorage<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + key);
@@ -27,12 +55,14 @@ function getStorage<T>(key: string, fallback: T): T {
 function setStorage<T>(key: string, value: T): void {
   try {
     localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+    // Asynchronously push to server sync so other devices receive it
+    pushToSyncServer(key, value);
   } catch (err) {
     console.error(`Error writing storage for ${key}:`, err);
   }
 }
 
-// Event Emitter for Local Realtime Simulation
+// Event Emitter for Realtime Simulation & Cross-Device Broadcast
 type ListenerCallback = (payload: any) => void;
 class EventBus {
   private listeners: Map<string, Set<ListenerCallback>> = new Map();
@@ -48,17 +78,71 @@ class EventBus {
     };
   }
 
-  emit(event: string, payload: any) {
+  emit(event: string, payload: any, shouldBroadcast = true) {
     this.listeners.get(event)?.forEach(cb => cb(payload));
+    if (shouldBroadcast && realtimeChannel) {
+      try {
+        realtimeChannel.send({
+          type: 'broadcast',
+          event,
+          payload
+        }).catch(() => {});
+      } catch (err) {
+        // Broadcast fail safe
+      }
+    }
   }
 }
 
 export const realtimeBus = new EventBus();
 
+// Broadcast channel via Supabase Realtime across devices
+let realtimeChannel: any = null;
+if (supabase) {
+  try {
+    realtimeChannel = supabase.channel('mitracbt-live-room');
+    realtimeChannel
+      .on('broadcast', { event: 'participant_updated' }, ({ payload }: any) => {
+        if (!payload || !payload.id) return;
+        const parts = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
+        const idx = parts.findIndex(p => p.id === payload.id);
+        if (idx >= 0) {
+          parts[idx] = { ...parts[idx], ...payload };
+        } else {
+          parts.push(payload);
+        }
+        localStorage.setItem(STORAGE_PREFIX + 'participants', JSON.stringify(parts));
+        realtimeBus.emit('participant_updated', payload, false);
+      })
+      .on('broadcast', { event: 'event_logged' }, ({ payload }: any) => {
+        if (!payload || !payload.id) return;
+        const events = getStorage<ExamEvent[]>('events', INITIAL_EVENTS);
+        if (!events.find(e => e.id === payload.id)) {
+          events.unshift(payload);
+          localStorage.setItem(STORAGE_PREFIX + 'events', JSON.stringify(events));
+        }
+        realtimeBus.emit('event_logged', payload, false);
+      })
+      .subscribe();
+  } catch (e) {
+    console.error('Supabase broadcast channel failed:', e);
+  }
+}
+
 class DBService {
   // Profiles
   async getProfiles(): Promise<Profile[]> {
-    return getStorage<Profile[]>('profiles', INITIAL_PROFILES);
+    const serverProfiles = await fetchFromSyncServer<Profile[]>('profiles');
+    const localProfiles = getStorage<Profile[]>('profiles', INITIAL_PROFILES);
+    if (serverProfiles && serverProfiles.length > 0) {
+      for (const sp of serverProfiles) {
+        if (!localProfiles.find(p => p.id === sp.id)) {
+          localProfiles.push(sp);
+        }
+      }
+      setStorage('profiles', localProfiles);
+    }
+    return localProfiles;
   }
 
   async getProfileById(id: string): Promise<Profile | undefined> {
@@ -82,8 +166,20 @@ class DBService {
 
   // Students & Teachers
   async getStudents(): Promise<Student[]> {
-    const students = getStorage<Student[]>('students', INITIAL_STUDENTS);
-    const classes  = await this.getClasses();
+    const serverStudents = await fetchFromSyncServer<Student[]>('students');
+    let students = getStorage<Student[]>('students', INITIAL_STUDENTS);
+    if (serverStudents && serverStudents.length > 0) {
+      for (const ss of serverStudents) {
+        const idx = students.findIndex(s => s.id === ss.id);
+        if (idx >= 0) {
+          students[idx] = ss;
+        } else {
+          students.push(ss);
+        }
+      }
+      setStorage('students', students);
+    }
+    const classes = await this.getClasses();
     return students.map(s => ({
       ...s,
       class: classes.find(c => c.id === s.class_id),
@@ -365,7 +461,19 @@ class DBService {
 
   // Participants & Sessions
   async getExamParticipants(examId: string): Promise<ExamParticipant[]> {
-    const participants = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
+    const serverParts = await fetchFromSyncServer<ExamParticipant[]>('participants');
+    let participants = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
+    if (serverParts && serverParts.length > 0) {
+      for (const sp of serverParts) {
+        const idx = participants.findIndex(p => p.id === sp.id);
+        if (idx >= 0) {
+          participants[idx] = sp;
+        } else {
+          participants.push(sp);
+        }
+      }
+      setStorage('participants', participants);
+    }
     const students = await this.getStudents();
     const exam = await this.getExamById(examId);
 
@@ -373,13 +481,25 @@ class DBService {
       .filter(p => p.exam_id === examId)
       .map(p => ({
         ...p,
-        student: students.find(s => s.id === p.student_id),
+        student: students.find(s => s.id === p.student_id) || p.student,
         exam
       }));
   }
 
   async getParticipantSession(examId: string, studentId: string): Promise<ExamParticipant> {
-    const participants = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
+    const serverParts = await fetchFromSyncServer<ExamParticipant[]>('participants');
+    let participants = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
+    if (serverParts && serverParts.length > 0) {
+      for (const sp of serverParts) {
+        const idx = participants.findIndex(p => p.id === sp.id);
+        if (idx >= 0) {
+          participants[idx] = sp;
+        } else {
+          participants.push(sp);
+        }
+      }
+      setStorage('participants', participants);
+    }
     let session = participants.find(p => p.exam_id === examId && p.student_id === studentId);
 
     if (!session) {
@@ -495,7 +615,16 @@ class DBService {
   }
 
   async getEvents(examId: string): Promise<ExamEvent[]> {
-    const events = getStorage<ExamEvent[]>('events', INITIAL_EVENTS);
+    const serverEvents = await fetchFromSyncServer<ExamEvent[]>('events');
+    let events = getStorage<ExamEvent[]>('events', INITIAL_EVENTS);
+    if (serverEvents && serverEvents.length > 0) {
+      for (const se of serverEvents) {
+        if (!events.find(e => e.id === se.id)) {
+          events.push(se);
+        }
+      }
+      setStorage('events', events);
+    }
     return events.filter(e => e.exam_id === examId);
   }
 
@@ -615,7 +744,19 @@ class DBService {
   }
 
   async getExamResults(examId: string): Promise<ExamResult[]> {
-    const results = getStorage<ExamResult[]>('exam_results', INITIAL_EXAM_RESULTS);
+    const serverResults = await fetchFromSyncServer<ExamResult[]>('exam_results');
+    let results = getStorage<ExamResult[]>('exam_results', INITIAL_EXAM_RESULTS);
+    if (serverResults && serverResults.length > 0) {
+      for (const sr of serverResults) {
+        const idx = results.findIndex(r => r.id === sr.id);
+        if (idx >= 0) {
+          results[idx] = sr;
+        } else {
+          results.push(sr);
+        }
+      }
+      setStorage('exam_results', results);
+    }
     const participants = await this.getExamParticipants(examId);
 
     return results
