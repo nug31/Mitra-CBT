@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS public.classes (
 -- 3. Teachers (Data Guru)
 CREATE TABLE IF NOT EXISTS public.teachers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL UNIQUE REFERENCES public.profiles(id) ON DELETE CASCADE,
     nip TEXT UNIQUE,
     subject_specialty TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.teachers (
 -- 4. Students (Data Siswa)
 CREATE TABLE IF NOT EXISTS public.students (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL UNIQUE REFERENCES public.profiles(id) ON DELETE CASCADE,
     nis TEXT UNIQUE NOT NULL,
     nisn TEXT UNIQUE,
     class_id UUID REFERENCES public.classes(id) ON DELETE SET NULL,

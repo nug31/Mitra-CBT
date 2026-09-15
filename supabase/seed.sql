@@ -7,6 +7,32 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- ── 0. PASTIKAN CONSTRAINT UNIQUE PADA PROFILE_ID ─────────────
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'teachers_profile_id_key'
+  ) THEN
+    BEGIN
+      ALTER TABLE public.teachers ADD CONSTRAINT teachers_profile_id_key UNIQUE (profile_id);
+    EXCEPTION
+      WHEN duplicate_table OR duplicate_object THEN NULL;
+      WHEN OTHERS THEN NULL;
+    END;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'students_profile_id_key'
+  ) THEN
+    BEGIN
+      ALTER TABLE public.students ADD CONSTRAINT students_profile_id_key UNIQUE (profile_id);
+    EXCEPTION
+      WHEN duplicate_table OR duplicate_object THEN NULL;
+      WHEN OTHERS THEN NULL;
+    END;
+  END IF;
+END $$;
+
 -- ── BERSIHKAN DATA LAMA (aman dijalankan ulang) ─────────────────
 TRUNCATE public.audit_logs          CASCADE;
 TRUNCATE public.exam_results        CASCADE;
@@ -35,9 +61,14 @@ INSERT INTO public.assessment_types (id, name, code, description, is_default) VA
   ('11111111-1111-1111-1111-111111111006', 'Try Out',                  'TRYOUT',   'Simulasi ujian kelulusan atau sertifikasi kejuruan', true),
   ('11111111-1111-1111-1111-111111111007', 'Ujian Teori Praktik',      'UPT',      'Ujian teori pengantar praktik kejuruan di bengkel', true),
   ('11111111-1111-1111-1111-111111111008', 'Evaluasi Pembelajaran',    'EVAL',     'Evaluasi pembelajaran fleksibel', true)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name        = EXCLUDED.name,
+  code        = EXCLUDED.code,
+  description = EXCLUDED.description,
+  is_default  = EXCLUDED.is_default;
 
 -- ── 2. KELAS (8 Jurusan × 3 Tingkat = 24 Kelas) ────────────────
+-- Jurusan: TKR, Mesin, TSM, Elind, Akuntansi, Listrik, Hotel, TKI
 INSERT INTO public.classes (id, name, grade, major, academic_year) VALUES
   -- TKR
   ('c0000001-0000-0000-0000-000000000001', 'X TKR',         'X',   'TKR',       '2024/2025'),
@@ -71,7 +102,11 @@ INSERT INTO public.classes (id, name, grade, major, academic_year) VALUES
   ('c0000008-0000-0000-0000-000000000001', 'X TKI',         'X',   'TKI',       '2024/2025'),
   ('c0000008-0000-0000-0000-000000000002', 'XI TKI',        'XI',  'TKI',       '2024/2025'),
   ('c0000008-0000-0000-0000-000000000003', 'XII TKI',       'XII', 'TKI',       '2024/2025')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name          = EXCLUDED.name,
+  grade         = EXCLUDED.grade,
+  major         = EXCLUDED.major,
+  academic_year = EXCLUDED.academic_year;
 
 -- ── 3. MATA PELAJARAN ───────────────────────────────────────────
 INSERT INTO public.subjects (id, name, code, major, description) VALUES
@@ -80,7 +115,11 @@ INSERT INTO public.subjects (id, name, code, major, description) VALUES
   ('33333333-3333-3333-3333-333333333003', 'Pemeliharaan Mesin Kendaraan Ringan', 'PMKR-TKR', 'Teknik Otomotif', 'Tune-up, sistem pendinginan, pelumasan, bahan bakar EFI, mekanisme katup'),
   ('33333333-3333-3333-3333-333333333004', 'Matematika Terapan Kejuruan',         'MTK-SMK',  'Umum',            'Geometri, trigonometri, aljabar, dan kalkulasi mekanika teknik'),
   ('33333333-3333-3333-3333-333333333005', 'Bahasa Indonesia Kejuruan',           'BIN-SMK',  'Umum',            'Laporan kerja bengkel, SOP perbengkelan, dan komunikasi profesional')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name        = EXCLUDED.name,
+  code        = EXCLUDED.code,
+  major       = EXCLUDED.major,
+  description = EXCLUDED.description;
 
 -- ── 4. MATERI AJAR ──────────────────────────────────────────────
 INSERT INTO public.subject_materials (id, subject_id, name, order_index) VALUES
@@ -92,15 +131,16 @@ INSERT INTO public.subject_materials (id, subject_id, name, order_index) VALUES
   ('44444444-4444-4444-4444-444444444006', '33333333-3333-3333-3333-333333333002', 'Siklus Kerja Mesin 4 Langkah (Otto & Diesel)',   2),
   ('44444444-4444-4444-4444-444444444007', '33333333-3333-3333-3333-333333333002', 'Sistem Pelumasan, Pendinginan & Bahan Bakar',    3),
   ('44444444-4444-4444-4444-444444444008', '33333333-3333-3333-3333-333333333002', 'Efisiensi Volumetrik & Performa Engine',         4)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  subject_id  = EXCLUDED.subject_id,
+  name        = EXCLUDED.name,
+  order_index = EXCLUDED.order_index;
 
 -- ════════════════════════════════════════════════════════════════
--- 5. AKUN GURU: Joko Setyo Nugroho, S.T.
+-- 5. AKUN AUTH GURU & ADMIN (DIBUAT OTOMATIS BESERTA PASSWORD)
 --
---    Email    : joko.setyo@mitracbt.id
---    Password : MitraSMK@2024
---
---    Gunakan DO block agar UUID dibuat sekali dan dipakai konsisten
+--    Akun Guru : joko.setyo@mitracbt.id / MitraSMK@2024
+--    Akun Admin: admin@mitracbt.id      / MitraSMK@2024
 -- ════════════════════════════════════════════════════════════════
 DO $$
 DECLARE
@@ -108,7 +148,7 @@ DECLARE
   v_admin_id  UUID := 'a0000001-beef-beef-beef-000000000002';
 BEGIN
 
-  -- ── Hapus jika sudah ada (idempotent) ──────────────────────────
+  -- ── Hapus user lama jika ada (agar idempotent dan bersih) ──────
   DELETE FROM auth.users WHERE email IN (
     'joko.setyo@mitracbt.id',
     'admin@mitracbt.id'
@@ -161,12 +201,81 @@ BEGIN
     crypt('MitraSMK@2024', gen_salt('bf')),
     NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"full_name":"Joko Setyo Nugroho, S.T.","role":"admin"}'::jsonb,
+    '{"full_name":"Administrator","role":"admin"}'::jsonb,
     'authenticated',
     'authenticated',
     NOW(),
     NOW()
   );
+
+  -- ── Daftarkan di auth.identities jika tabel ada (untuk GoTrue) ──
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'auth' AND table_name = 'identities') THEN
+    DELETE FROM auth.identities WHERE user_id IN (v_guru_id, v_admin_id);
+
+    BEGIN
+      INSERT INTO auth.identities (
+        id,
+        user_id,
+        identity_data,
+        provider,
+        provider_id,
+        last_sign_in_at,
+        created_at,
+        updated_at
+      ) VALUES
+        (
+          v_guru_id::text,
+          v_guru_id,
+          format('{"sub":"%s","email":"%s"}', v_guru_id, 'joko.setyo@mitracbt.id')::jsonb,
+          'email',
+          v_guru_id::text,
+          NOW(),
+          NOW(),
+          NOW()
+        ),
+        (
+          v_admin_id::text,
+          v_admin_id,
+          format('{"sub":"%s","email":"%s"}', v_admin_id, 'admin@mitracbt.id')::jsonb,
+          'email',
+          v_admin_id::text,
+          NOW(),
+          NOW(),
+          NOW()
+        );
+    EXCEPTION
+      WHEN undefined_column THEN
+        INSERT INTO auth.identities (
+          id,
+          user_id,
+          identity_data,
+          provider,
+          last_sign_in_at,
+          created_at,
+          updated_at
+        ) VALUES
+          (
+            v_guru_id::text,
+            v_guru_id,
+            format('{"sub":"%s","email":"%s"}', v_guru_id, 'joko.setyo@mitracbt.id')::jsonb,
+            'email',
+            NOW(),
+            NOW(),
+            NOW()
+          ),
+          (
+            v_admin_id::text,
+            v_admin_id,
+            format('{"sub":"%s","email":"%s"}', v_admin_id, 'admin@mitracbt.id')::jsonb,
+            'email',
+            NOW(),
+            NOW(),
+            NOW()
+          );
+      WHEN OTHERS THEN
+        NULL;
+    END;
+  END IF;
 
   -- ── Profil GURU ───────────────────────────────────────────────
   INSERT INTO public.profiles (id, email, full_name, role, phone, created_at)
@@ -180,6 +289,7 @@ BEGIN
   )
   ON CONFLICT (id) DO UPDATE SET
     full_name = EXCLUDED.full_name,
+    role      = EXCLUDED.role,
     phone     = EXCLUDED.phone;
 
   -- ── Profil ADMIN ──────────────────────────────────────────────
@@ -187,39 +297,42 @@ BEGIN
   VALUES (
     v_admin_id,
     'admin@mitracbt.id',
-    'Joko Setyo Nugroho, S.T.',
+    'Administrator',
     'admin',
     '081234567890',
     NOW()
   )
   ON CONFLICT (id) DO UPDATE SET
     full_name = EXCLUDED.full_name,
+    role      = EXCLUDED.role,
     phone     = EXCLUDED.phone;
 
   -- ── Data Guru (NIP & Spesialisasi) ────────────────────────────
+  -- Hapus dahulu bila ada berdasarkan profile_id atau nip agar tidak memicu 42P10
+  DELETE FROM public.teachers WHERE profile_id = v_guru_id OR nip = '198506152010011012';
+
   INSERT INTO public.teachers (profile_id, nip, subject_specialty)
   VALUES (
     v_guru_id,
     '198506152010011012',
     'Teknik Mesin & Rekayasa Kejuruan'
-  )
-  ON CONFLICT (profile_id) DO UPDATE SET
-    nip               = EXCLUDED.nip,
-    subject_specialty = EXCLUDED.subject_specialty;
+  );
 
 END $$;
 
 -- ── 6. RLS POLICIES ─────────────────────────────────────────────
--- Izinkan semua authenticated user membaca data referensi
 
-DROP POLICY IF EXISTS "read_classes"         ON public.classes;
+DROP POLICY IF EXISTS "read_classes"          ON public.classes;
+DROP POLICY IF EXISTS "manage_classes"        ON public.classes;
 DROP POLICY IF EXISTS "read_assessment_types" ON public.assessment_types;
 DROP POLICY IF EXISTS "read_subjects"         ON public.subjects;
 DROP POLICY IF EXISTS "read_materials"        ON public.subject_materials;
 DROP POLICY IF EXISTS "read_teachers"         ON public.teachers;
+DROP POLICY IF EXISTS "manage_teachers"       ON public.teachers;
 DROP POLICY IF EXISTS "read_own_profile"      ON public.profiles;
 DROP POLICY IF EXISTS "read_all_profiles"     ON public.profiles;
 DROP POLICY IF EXISTS "update_own_profile"    ON public.profiles;
+DROP POLICY IF EXISTS "manage_profiles"       ON public.profiles;
 DROP POLICY IF EXISTS "manage_students"       ON public.students;
 DROP POLICY IF EXISTS "student_read_self"     ON public.students;
 DROP POLICY IF EXISTS "read_exams"            ON public.exams;
@@ -240,10 +353,18 @@ DROP POLICY IF EXISTS "audit_insert"          ON public.audit_logs;
 
 -- Data referensi: bisa dibaca semua user terautentikasi
 CREATE POLICY "read_classes"          ON public.classes          FOR SELECT TO authenticated USING (true);
+CREATE POLICY "manage_classes"        ON public.classes          FOR ALL    TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+
 CREATE POLICY "read_assessment_types" ON public.assessment_types FOR SELECT TO authenticated USING (true);
 CREATE POLICY "read_subjects"         ON public.subjects         FOR SELECT TO authenticated USING (true);
 CREATE POLICY "read_materials"        ON public.subject_materials FOR SELECT TO authenticated USING (true);
+
+-- Teachers: semua bisa baca, admin bisa kelola
 CREATE POLICY "read_teachers"         ON public.teachers         FOR SELECT TO authenticated USING (true);
+CREATE POLICY "manage_teachers"       ON public.teachers         FOR ALL    TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+
 CREATE POLICY "read_questions"        ON public.questions        FOR SELECT TO authenticated USING (true);
 CREATE POLICY "read_options"          ON public.question_options FOR SELECT TO authenticated USING (true);
 CREATE POLICY "read_banks"            ON public.question_banks   FOR SELECT TO authenticated USING (true);
@@ -255,6 +376,8 @@ CREATE POLICY "read_own_profile"   ON public.profiles FOR SELECT TO authenticate
 CREATE POLICY "read_all_profiles"  ON public.profiles FOR SELECT TO authenticated
   USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin','guru')));
 CREATE POLICY "update_own_profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
+CREATE POLICY "manage_profiles"    ON public.profiles FOR ALL    TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
 
 -- Students: admin/guru kelola semua, siswa baca diri sendiri
 CREATE POLICY "manage_students"   ON public.students FOR ALL TO authenticated
@@ -303,6 +426,7 @@ CREATE POLICY "audit_insert" ON public.audit_logs FOR INSERT TO authenticated WI
 -- ┌─────────────────────────────────────────────────────────────┐
 -- │  GURU                                                       │
 -- │  Email    : joko.setyo@mitracbt.id                         │
+-- │  NIP      : 198506152010011012                              │
 -- │  Password : MitraSMK@2024                                  │
 -- │                                                             │
 -- │  ADMIN                                                      │
