@@ -35,24 +35,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (savedRoleId === 'siswa' && savedStudentId) {
         const students = await db.getStudents();
-        const foundStudent = students.find(s => s.id === savedStudentId) || students[0];
+        const foundStudent = students.find(s => s.id === savedStudentId);
         if (foundStudent) {
           const profiles = await db.getProfiles();
-          const profile = profiles.find(p => p.id === foundStudent.profile_id) || foundStudent.profile || profiles[2];
-          setCurrentUser(profile);
-          setCurrentStudent(foundStudent);
-          setCurrentTeacher(null);
-          setRole('siswa');
+          const profile = profiles.find(p => p.id === foundStudent.profile_id) || foundStudent.profile;
+          if (profile) {
+            setCurrentUser(profile);
+            setCurrentStudent(foundStudent);
+            setCurrentTeacher(null);
+            setRole('siswa');
+            return;
+          }
+        }
+      }
+
+      if (savedRoleId === 'guru' || savedRoleId === 'admin') {
+        const profiles = await db.getProfiles();
+        const profile = profiles.find(p => p.role === savedRoleId);
+        if (profile) {
+          await switchRole(savedRoleId);
           return;
         }
       }
 
-      if (savedRoleId) {
-        await switchRole(savedRoleId);
-      } else {
-        // Default to guru for rich exploration, or switchable via Login
-        await switchRole('guru');
-      }
+      // If no valid saved session, stay unauthenticated so user must log in
+      setCurrentUser(null);
+      setCurrentStudent(null);
+      setCurrentTeacher(null);
+      setRole('siswa');
     } catch (err) {
       console.error('Failed to init auth:', err);
     } finally {

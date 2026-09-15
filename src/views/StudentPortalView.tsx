@@ -58,6 +58,22 @@ export const StudentPortalView: React.FC = () => {
       if (myResult) allResults.push(myResult);
     }
     setResults(allResults);
+
+    // Auto-detect exam from QR Code scan (?exam=...&pin=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const scannedExamId = urlParams.get('exam');
+    const scannedPin = urlParams.get('pin');
+
+    if (scannedExamId) {
+      const targetExam = allExams.find(e => e.id === scannedExamId);
+      if (targetExam) {
+        setPinModalExam(targetExam);
+        if (scannedPin) {
+          setPinInput(scannedPin.trim().toUpperCase());
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
   };
 
   const handleStartExamClick = (exam: Exam) => {
@@ -96,17 +112,17 @@ export const StudentPortalView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Student Welcome Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
+      <div className="bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 rounded-3xl p-5 sm:p-8 text-white shadow-lg border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
+        <div className="flex items-center gap-3.5 sm:gap-4">
           <img
             src={
               currentStudent?.profile?.avatar_url ||
               `https://ui-avatars.com/api/?name=${encodeURIComponent(currentStudent?.profile?.full_name || 'Siswa')}&background=0284c7&color=fff`
             }
             alt="Student Avatar"
-            className="w-16 h-16 rounded-2xl border-2 border-brand-500 object-cover shadow-md"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-brand-500 object-cover shadow-md shrink-0"
           />
           <div>
             <div className="flex items-center gap-2">
@@ -114,17 +130,17 @@ export const StudentPortalView: React.FC = () => {
                 PORTAL PESERTA ASESMEN
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white mt-1 tracking-tight">
-              {currentStudent?.profile?.full_name || 'Andi Prasetyo'}
+            <h1 className="text-lg sm:text-2xl font-black text-white mt-1 tracking-tight">
+              {currentStudent?.profile?.full_name || 'Siswa Peserta'}
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              NISN: <span className="text-emerald-300 font-mono font-bold">{currentStudent?.nisn || '0071234561'}</span> • NIS: <span className="text-slate-200 font-mono font-bold">{currentStudent?.nis || '20241001'}</span> • Kelas: <span className="text-sky-300 font-bold">{currentStudent?.class?.name || 'X TKR 2'}</span>
+            <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+              NISN: <span className="text-emerald-300 font-mono font-bold">{currentStudent?.nisn || '-'}</span> • Kelas: <span className="text-sky-300 font-bold">{currentStudent?.class?.name || '-'}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10 text-xs">
-          <div className="text-right">
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10 text-xs self-start sm:self-auto">
+          <div className="text-left sm:text-right">
             <p className="text-slate-400 text-[10px] uppercase font-bold">Tahun Ajaran</p>
             <p className="font-bold text-white">2024/2025 (Ganjil)</p>
           </div>
@@ -303,9 +319,6 @@ export const StudentPortalView: React.FC = () => {
                 placeholder="CONTOH: GT902"
                 className="w-full text-center font-mono text-2xl font-black tracking-widest uppercase p-3 rounded-xl border-2 border-slate-300 focus:border-brand-500 focus:outline-none"
               />
-              <p className="text-[10px] text-slate-400 mt-1">
-                (Saran Uji Demo: PIN untuk ujian ini adalah <span className="font-mono font-bold text-brand-600">{pinModalExam.pin_code}</span>)
-              </p>
             </div>
 
             <div className="flex items-center gap-3 pt-2">

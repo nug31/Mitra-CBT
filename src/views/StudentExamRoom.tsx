@@ -617,32 +617,32 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     >
       {/* 1. Exam Header (MITRA CBT Distraction-free) */}
       <header className="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
           {/* Brand & Exam Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white text-base">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white text-xs sm:text-base shrink-0">
               M
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-tight text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-bold text-xs sm:text-sm tracking-tight text-white truncate max-w-[120px] sm:max-w-[260px] block">
                   {exam.title}
                 </span>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-brand-950 text-sky-400 border border-brand-800 uppercase">
+                <span className="hidden sm:inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-brand-950 text-sky-400 border border-brand-800 uppercase shrink-0">
                   CBT SISWA
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
-                {participant.student?.profile?.full_name} • Kelas {exam.class?.name}
+              <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[130px] sm:max-w-none">
+                {participant.student?.profile?.full_name}
               </p>
             </div>
           </div>
 
           {/* Center: Server-side countdown timer */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-800 border border-slate-700 shadow-inner">
-            <Clock className={`w-4 h-4 ${remainingSeconds < 300 ? 'text-rose-400 animate-bounce' : 'text-amber-400'}`} />
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-2xl bg-slate-800 border border-slate-700 shadow-inner shrink-0">
+            <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${remainingSeconds < 300 ? 'text-rose-400 animate-bounce' : 'text-amber-400'}`} />
             <span
-              className={`font-mono font-black text-sm tracking-wider ${
+              className={`font-mono font-black text-xs sm:text-sm tracking-wider ${
                 remainingSeconds < 300 ? 'text-rose-400' : 'text-slate-100'
               }`}
             >
@@ -651,7 +651,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           </div>
 
           {/* Right Controls: Anti-cheat badge, Auto-save badge & Question count */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Anti-Cheat Realtime Security Badge */}
             <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition ${
               violationCount === 0
@@ -804,7 +804,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                     value={answersMap[currentQ.id]?.text_answer || ''}
                     onChange={(e) => handleTextAnswerChange(e.target.value)}
                     placeholder="Tuliskan jawaban Anda di sini..."
-                    className="w-full text-sm font-semibold p-4 rounded-2xl border-2 border-slate-200 focus:border-brand-500 focus:outline-none bg-slate-50"
+                    className="w-full text-base sm:text-sm font-semibold p-3.5 sm:p-4 rounded-2xl border-2 border-slate-200 focus:border-brand-500 focus:outline-none bg-slate-50"
                   />
                 </div>
               )}
@@ -849,9 +849,17 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           )}
         </div>
 
+        {/* Backdrop overlay for mobile drawer */}
+        {paletteOpen && (
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden animate-in fade-in"
+            onClick={() => setPaletteOpen(false)}
+          />
+        )}
+
         {/* Right Column (1 Col): Question Navigation Palette */}
         <div
-          className={`lg:col-span-1 fixed lg:static inset-y-0 right-0 z-50 lg:z-auto w-80 lg:w-auto bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4 transition-transform ${
+          className={`lg:col-span-1 fixed lg:static inset-y-0 right-0 z-50 lg:z-auto w-80 max-w-[85vw] lg:w-auto bg-white rounded-l-3xl lg:rounded-3xl border border-slate-200 p-5 shadow-2xl lg:shadow-xs space-y-4 transition-transform duration-200 ease-out ${
             paletteOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
           }`}
         >

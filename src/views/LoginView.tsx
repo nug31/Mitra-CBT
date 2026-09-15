@@ -11,7 +11,8 @@ import {
   AlertCircle, 
   ArrowRight,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  QrCode
 } from 'lucide-react';
 
 interface LoginViewProps {
@@ -21,6 +22,11 @@ interface LoginViewProps {
 export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const { loginWithNisn, loginWithCredentials } = useAuth();
   
+  // URL parameters if opened from QR scan
+  const urlParams = new URLSearchParams(window.location.search);
+  const examIdParam = urlParams.get('exam');
+  const pinParam = urlParams.get('pin');
+
   // Tab: 'siswa' or 'guru_admin'
   const [activeTab, setActiveTab] = useState<'siswa' | 'guru_admin'>('siswa');
 
@@ -138,6 +144,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
             </div>
           )}
 
+          {/* QR Code Detected Alert */}
+          {examIdParam && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950 text-xs flex items-start gap-2.5 animate-in fade-in">
+              <QrCode className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-xs">Ujian Terdeteksi dari Pemindaian QR Code</p>
+                <p className="text-[11px] text-sky-700 mt-0.5 leading-relaxed">
+                  {pinParam ? `Kode PIN (${pinParam}) otomatis terisi. ` : ''}
+                  Silakan masukkan <b>NISN</b> Anda untuk langsung masuk ke ruang asesmen.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ── TAB 1: SISWA LOGIN ── */}
           {activeTab === 'siswa' && (
             <form onSubmit={handleSubmitSiswa} className="space-y-4">
@@ -166,7 +186,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     value={nisn}
                     onChange={(e) => setNisn(e.target.value.replace(/\D/g, ''))}
                     placeholder="Masukkan NISN..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
               </div>
@@ -185,12 +205,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     value={studentPassword}
                     onChange={(e) => setStudentPassword(e.target.value)}
                     placeholder="Masukkan password..."
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-10 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowStudentPw(!showStudentPw)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
                   >
                     {showStudentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
