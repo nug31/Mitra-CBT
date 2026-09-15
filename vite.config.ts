@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig, Plugin } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
 
