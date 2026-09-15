@@ -82,11 +82,75 @@ class DBService {
 
   // Students & Teachers
   async getStudents(): Promise<Student[]> {
-    return getStorage<Student[]>('students', INITIAL_STUDENTS);
+    const students = getStorage<Student[]>('students', INITIAL_STUDENTS);
+    const classes  = await this.getClasses();
+    return students.map(s => ({
+      ...s,
+      class: classes.find(c => c.id === s.class_id),
+    }));
   }
 
   async getTeachers(): Promise<Teacher[]> {
     return getStorage<Teacher[]>('teachers', INITIAL_TEACHERS);
+  }
+
+  /**
+   * Batch-import siswa dari hasil parsing Excel.
+   * Membuat Profile (role=siswa, email=nisn@siswa.mitracbt.id) dan Student record.
+   * Siswa yang NISN-nya sudah ada di database akan dilewati (tidak duplikat).
+   * Kembalikan jumlah siswa yang berhasil diimport.
+   */
+  async importStudents(rows: import('../utils/excelImport').StudentImportRow[]): Promise<number> {
+    const profiles  = await this.getProfiles();
+    const students  = getStorage<Student[]>('students', INITIAL_STUDENTS);
+
+    // Index existing NISNs
+    const existingNisns = new Set(students.map(s => s.nisn));
+
+    const newProfiles: Profile[]  = [];
+    const newStudents: Student[]  = [];
+
+    for (const row of rows) {
+      if (!row.valid || !row.class_id) continue;
+      if (existingNisns.has(row.nisn)) continue; // skip duplikat
+
+      const profileId = 'profile-siswa-' + row.nisn;
+      const studentId = 'student-' + row.nisn;
+
+      const profile: Profile = {
+        id:         profileId,
+        email:      row.nisn + '@siswa.mitracbt.id',
+        full_name:  row.full_name,
+        role:       'siswa',
+        created_at: new Date().toISOString(),
+      };
+
+      const student: Student = {
+        id:         studentId,
+        profile_id: profileId,
+        nis:        row.nis || row.nisn,
+        nisn:       row.nisn,
+        class_id:   row.class_id,
+        status:     'active',
+        profile,
+      };
+
+      newProfiles.push(profile);
+      newStudents.push(student);
+      existingNisns.add(row.nisn);
+    }
+
+    if (newProfiles.length === 0) return 0;
+
+    setStorage('profiles', [...profiles, ...newProfiles]);
+    setStorage('students', [...students, ...newStudents]);
+
+    this.logAudit('IMPORT_STUDENTS', 'student', undefined, {
+      count:   newStudents.length,
+      classes: [...new Set(newStudents.map(s => s.class_id))],
+    });
+
+    return newStudents.length;
   }
 
   // Subjects & Materials
