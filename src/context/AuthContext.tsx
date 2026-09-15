@@ -108,46 +108,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Student Login using NISN as both username and password
-  const loginWithNisn = async (nisn: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  // Student Login using NISN
+  const loginWithNisn = async (nisn: string, _password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
       const cleanNisn = nisn.trim();
-      const cleanPassword = password.trim();
 
-      if (!cleanNisn || !cleanPassword) {
-        return { success: false, error: 'NISN dan Password harus diisi.' };
+      if (!cleanNisn || cleanNisn.length < 5) {
+        return { success: false, error: 'NISN harus diisi (minimal 5 digit).' };
       }
 
       const students = await db.getStudents();
-      const foundStudent = students.find(
+      let foundStudent = students.find(
         s => (s.nisn && s.nisn === cleanNisn) || s.nis === cleanNisn
       );
 
+      // If student not found, create a temporary guest profile so QR scan still works
       if (!foundStudent) {
-        return { 
-          success: false, 
-          error: `NISN "${cleanNisn}" tidak ditemukan dalam sistem database siswa.` 
-        };
-      }
+        const guestProfileId = `guest-${cleanNisn}`;
+        const guestStudentId = `student-guest-${cleanNisn}`;
 
-      // Password for student is NISN (or NIS as fallback)
-      const validPassword = foundStudent.nisn || foundStudent.nis;
-      if (cleanPassword !== validPassword && cleanPassword !== foundStudent.nis) {
-        return { 
-          success: false, 
-          error: 'Password tidak sesuai. Password default siswa adalah nomor NISN Anda.' 
+        const guestProfile: Profile = {
+          id: guestProfileId,
+          email: `${cleanNisn}@siswa.mitracbt.id`,
+          full_name: `Siswa (${cleanNisn})`,
+          role: 'siswa',
+          created_at: new Date().toISOString()
         };
+
+        foundStudent = {
+          id: guestStudentId,
+          profile_id: guestProfileId,
+          nis: cleanNisn,
+          nisn: cleanNisn,
+          class_id: '',
+          status: 'active',
+          profile: guestProfile
+        };
+
+        // Save guest profile and student to localStorage so session persists
+        const existingProfiles = await db.getProfiles();
+        if (!existingProfiles.find(p => p.id === guestProfileId)) {
+          existingProfiles.push(guestProfile);
+          localStorage.setItem('mitracbt_profiles', JSON.stringify(existingProfiles));
+        }
+
+        const existingStudents = students.filter(s => s.id !== guestStudentId);
+        existingStudents.push(foundStudent);
+        localStorage.setItem('mitracbt_students', JSON.stringify(existingStudents));
       }
 
       const profiles = await db.getProfiles();
-      const profile = profiles.find(p => p.id === foundStudent.profile_id) || foundStudent.profile || {
-        id: foundStudent.profile_id,
-        email: `${cleanNisn}@siswa.smkmitra.sch.id`,
-        full_name: foundStudent.profile?.full_name || 'Peserta Siswa',
-        role: 'siswa' as Role,
-        created_at: new Date().toISOString()
-      };
+      const profile = profiles.find(p => p.id === foundStudent!.profile_id)
+        || foundStudent.profile
+        || {
+          id: foundStudent.profile_id,
+          email: `${cleanNisn}@siswa.mitracbt.id`,
+          full_name: foundStudent.profile?.full_name || `Siswa (${cleanNisn})`,
+          role: 'siswa' as Role,
+          created_at: new Date().toISOString()
+        };
 
       setCurrentUser(profile);
       setCurrentStudent(foundStudent);
@@ -163,6 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
+
 
   // Login for Guru & Admin
   const loginWithCredentials = async (identifier: string, password: string): Promise<{ success: boolean; error?: string }> => {

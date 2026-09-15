@@ -30,10 +30,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   // Tab: 'siswa' or 'guru_admin'
   const [activeTab, setActiveTab] = useState<'siswa' | 'guru_admin'>('siswa');
 
-  // Siswa Form
+  // Siswa Form — only NISN needed (password = NISN by default)
   const [nisn, setNisn] = useState('');
-  const [studentPassword, setStudentPassword] = useState('');
-  const [showStudentPw, setShowStudentPw] = useState(false);
 
   // Guru/Admin Form
   const [teacherEmail, setTeacherEmail] = useState('');
@@ -44,13 +42,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Submit Siswa
+  // Submit Siswa — password is always equal to NISN (default convention)
   const handleSubmitSiswa = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setLoading(true);
 
-    const res = await loginWithNisn(nisn, studentPassword);
+    // Password for student login is always NISN itself
+    const res = await loginWithNisn(nisn, nisn);
     setLoading(false);
 
     if (res.success) {
@@ -170,55 +169,32 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
               <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs flex items-start gap-2.5">
                 <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
-                  <p className="font-bold">Ketentuan Akses Ujian Siswa:</p>
+                  <p className="font-bold">Akses Ujian Siswa:</p>
                   <p className="text-[11px] text-emerald-700 mt-0.5">
-                    Gunakan <strong>NISN</strong> sebagai <span className="underline">Username</span> dan <span className="underline">Password</span> default.
+                    Masukkan <strong>NISN</strong> Anda, lalu klik <strong>Masuk</strong>.
+                    {examIdParam && ' Ujian dari QR Code akan terbuka otomatis.'}
                   </p>
                 </div>
               </div>
 
-              {/* Username Input (NISN) */}
+              {/* NISN Input */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Username (NISN)
+                  NISN Siswa
                 </label>
                 <div className="relative">
                   <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     id="input-nisn"
                     type="text"
+                    inputMode="numeric"
                     required
                     value={nisn}
                     onChange={(e) => setNisn(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Masukkan NISN..."
-                    className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    placeholder="Masukkan NISN Anda..."
+                    className="w-full pl-10 pr-4 py-3 sm:py-3 rounded-xl border border-slate-300 text-base sm:text-sm font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    autoFocus
                   />
-                </div>
-              </div>
-
-              {/* Password Input (NISN) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    id="input-student-password"
-                    type={showStudentPw ? 'text' : 'password'}
-                    required
-                    value={studentPassword}
-                    onChange={(e) => setStudentPassword(e.target.value)}
-                    placeholder="Masukkan password..."
-                    className="w-full pl-10 pr-10 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowStudentPw(!showStudentPw)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                  >
-                    {showStudentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
               </div>
 
@@ -226,14 +202,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
               <button
                 id="btn-login-siswa"
                 type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
+                disabled={loading || nisn.length < 6}
+                className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
               >
                 {loading ? (
-                  <span>Memverifikasi Akun...</span>
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Memverifikasi...</span>
+                  </>
                 ) : (
                   <>
-                    <span>Masuk ke Ruang Ujian Siswa</span>
+                    <span>Masuk ke Ruang Ujian</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
