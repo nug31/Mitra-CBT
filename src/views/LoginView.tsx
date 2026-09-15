@@ -4,16 +4,14 @@ import {
   Layers, 
   GraduationCap, 
   BookOpen, 
-  ShieldCheck, 
   Lock, 
   UserCheck, 
   Eye, 
   EyeOff, 
   AlertCircle, 
-  CheckCircle2, 
   ArrowRight,
-  Sparkles,
-  Info
+  Info,
+  ShieldCheck
 } from 'lucide-react';
 
 interface LoginViewProps {
@@ -21,7 +19,7 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
-  const { loginWithNisn, loginWithCredentials, switchRole } = useAuth();
+  const { loginWithNisn, loginWithCredentials } = useAuth();
   
   // Tab: 'siswa' or 'guru_admin'
   const [activeTab, setActiveTab] = useState<'siswa' | 'guru_admin'>('siswa');
@@ -39,13 +37,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   // States
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Quick fill student
-  const handleQuickStudentSelect = (quickNisn: string) => {
-    setNisn(quickNisn);
-    setStudentPassword(quickNisn);
-    setErrorMessage(null);
-  };
 
   // Submit Siswa
   const handleSubmitSiswa = async (e: React.FormEvent) => {
@@ -79,14 +70,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
     }
   };
 
-  // 1-Click Fast Login for Demo
-  const handleQuickRole = async (targetRole: 'guru' | 'admin') => {
-    setLoading(true);
-    await switchRole(targetRole);
-    setLoading(false);
-    if (onSuccess) onSuccess();
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-brand-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100 font-sans">
       {/* Glow Effects */}
@@ -106,7 +89,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
             Digital Assessment System SMK
           </p>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-            Platform asesmen digital kejuruan: STS, SAS, Remedial, Ulangan Harian, & Ujian Teori Kejuruan
+            Platform asesmen digital kejuruan: STS, SAS, Remedial, Ulangan Harian, &amp; Ujian Teori Kejuruan
           </p>
         </div>
 
@@ -143,7 +126,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
               }`}
             >
               <BookOpen className="w-4 h-4 text-brand-600" />
-              <span>Guru & Admin</span>
+              <span>Guru &amp; Admin</span>
             </button>
           </div>
 
@@ -155,7 +138,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
             </div>
           )}
 
-          {/* TAB 1: SISWA LOGIN (NISN USERNAME & PASSWORD) */}
+          {/* ── TAB 1: SISWA LOGIN ── */}
           {activeTab === 'siswa' && (
             <form onSubmit={handleSubmitSiswa} className="space-y-4">
               {/* NISN Info Card */}
@@ -164,7 +147,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 <div className="leading-relaxed">
                   <p className="font-bold">Ketentuan Akses Ujian Siswa:</p>
                   <p className="text-[11px] text-emerald-700 mt-0.5">
-                    Gunakan <strong>10 digit NISN</strong> sebagai <span className="underline">Username</span> dan <span className="underline">Password</span>.
+                    Gunakan <strong>NISN</strong> sebagai <span className="underline">Username</span> dan <span className="underline">Password</span> default.
                   </p>
                 </div>
               </div>
@@ -177,12 +160,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 <div className="relative">
                   <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
+                    id="input-nisn"
                     type="text"
                     required
-                    maxLength={10}
                     value={nisn}
                     onChange={(e) => setNisn(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Masukkan 10 digit NISN..."
+                    placeholder="Masukkan NISN..."
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -191,16 +174,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
               {/* Password Input (NISN) */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Password (NISN)
+                  Password
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
+                    id="input-student-password"
                     type={showStudentPw ? 'text' : 'password'}
                     required
                     value={studentPassword}
                     onChange={(e) => setStudentPassword(e.target.value)}
-                    placeholder="Masukkan password (NISN)..."
+                    placeholder="Masukkan password..."
                     className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                   <button
@@ -213,53 +197,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 </div>
               </div>
 
-              {/* Quick Fill Student Demo Chips */}
-              <div className="pt-1">
-                <p className="text-[11px] font-bold text-slate-500 mb-1.5 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  Klik Cepat Akun Siswa (Demo):
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickStudentSelect('0071234561')}
-                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
-                  >
-                    <p className="font-bold text-slate-800">Andi Prasetyo</p>
-                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234561</p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickStudentSelect('0071234562')}
-                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
-                  >
-                    <p className="font-bold text-slate-800">Budi Santoso</p>
-                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234562</p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickStudentSelect('0071234563')}
-                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
-                  >
-                    <p className="font-bold text-slate-800">Citra Dewi</p>
-                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234563</p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickStudentSelect('0071234564')}
-                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
-                  >
-                    <p className="font-bold text-slate-800">Deni Setiawan</p>
-                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234564</p>
-                  </button>
-                </div>
-              </div>
-
               {/* Submit Button */}
               <button
+                id="btn-login-siswa"
                 type="submit"
                 disabled={loading}
                 className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
@@ -276,21 +216,30 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
             </form>
           )}
 
-          {/* TAB 2: GURU & ADMIN LOGIN */}
+          {/* ── TAB 2: GURU & ADMIN LOGIN ── */}
           {activeTab === 'guru_admin' && (
             <form onSubmit={handleSubmitTeacher} className="space-y-4">
+              {/* Info card */}
+              <div className="p-3 rounded-2xl bg-brand-50 border border-brand-200/80 text-brand-900 text-xs flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-brand-700 leading-relaxed">
+                  Masuk menggunakan <strong>Email</strong> atau <strong>NIP</strong> yang terdaftar di sistem.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Email atau NIP Guru
+                  Email atau NIP
                 </label>
                 <div className="relative">
                   <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
+                    id="input-teacher-email"
                     type="text"
                     required
                     value={teacherEmail}
                     onChange={(e) => setTeacherEmail(e.target.value)}
-                    placeholder="hartono@smkmitra.sch.id / NIP..."
+                    placeholder="Email atau NIP..."
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
                   />
                 </div>
@@ -303,6 +252,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
+                    id="input-teacher-password"
                     type={showTeacherPw ? 'text' : 'password'}
                     required
                     value={teacherPassword}
@@ -320,34 +270,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 </div>
               </div>
 
-              {/* Fast 1-Click Role Login */}
-              <div className="pt-2">
-                <p className="text-[11px] font-bold text-slate-500 mb-1.5 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  Login Instan Sebagai:
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickRole('guru')}
-                    className="p-2.5 rounded-xl text-left border border-brand-200 bg-brand-50/70 hover:bg-brand-100 transition text-[11px]"
-                  >
-                    <p className="font-bold text-brand-900">Hartono, M.T.</p>
-                    <p className="text-[10px] text-brand-600">Guru Pengampu</p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickRole('admin')}
-                    className="p-2.5 rounded-xl text-left border border-rose-200 bg-rose-50/70 hover:bg-rose-100 transition text-[11px]"
-                  >
-                    <p className="font-bold text-rose-900">Bambang S., S.T.</p>
-                    <p className="text-[10px] text-rose-600">Administrator</p>
-                  </button>
-                </div>
-              </div>
-
               <button
+                id="btn-login-guru"
                 type="submit"
                 disabled={loading}
                 className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-500 hover:to-sky-500 text-white font-bold text-xs shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
