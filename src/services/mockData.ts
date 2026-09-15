@@ -101,7 +101,7 @@ export const INITIAL_PROFILES: Profile[] = [
   {
     id: 'user-admin-01',
     email: 'admin@mitracbt.id',
-    full_name: 'Joko Setyo Nugroho, S.T. (Admin)',
+    full_name: 'Joko Setyo Nugroho, S.T.',
     role: 'admin',
     avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
     phone: '081234567890',
@@ -454,7 +454,7 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   {
     id: 'audit-01',
     user_id: 'user-admin-01',
-    user_name: 'Joko Setyo Nugroho, S.T. (Admin)',
+    user_name: 'Joko Setyo Nugroho, S.T.',
     action: 'CREATE_EXAM',
     entity_type: 'exam',
     entity_id: 'exam-01',
@@ -474,7 +474,7 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   {
     id: 'audit-03',
     user_id: 'user-admin-01',
-    user_name: 'Joko Setyo Nugroho, S.T. (Admin)',
+    user_name: 'Joko Setyo Nugroho, S.T.',
     action: 'SETUP_SYSTEM',
     entity_type: 'system',
     details: { message: 'Sistem Mitra CBT diinisialisasi. Siswa akan diimport via Excel.' },

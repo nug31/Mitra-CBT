@@ -153,6 +153,40 @@ class DBService {
     return newStudents.length;
   }
 
+  // Update teacher profile & teacher record
+  async updateTeacher(
+    teacherId: string,
+    data: { full_name: string; email: string; nip: string; subject_specialty: string; phone?: string }
+  ): Promise<void> {
+    const teachers = getStorage<Teacher[]>('teachers', INITIAL_TEACHERS);
+    const profiles  = await this.getProfiles();
+
+    const teacherIdx = teachers.findIndex(t => t.id === teacherId);
+    if (teacherIdx === -1) throw new Error('Guru tidak ditemukan');
+
+    const teacher = teachers[teacherIdx];
+    teachers[teacherIdx] = {
+      ...teacher,
+      nip: data.nip,
+      subject_specialty: data.subject_specialty,
+    };
+
+    const profileIdx = profiles.findIndex(p => p.id === teacher.profile_id);
+    if (profileIdx !== -1) {
+      profiles[profileIdx] = {
+        ...profiles[profileIdx],
+        full_name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+      };
+    }
+
+    setStorage('teachers', teachers);
+    setStorage('profiles', profiles);
+    this.logAudit('UPDATE_TEACHER', 'teacher', teacherId, { name: data.full_name });
+  }
+
+
   // Subjects & Materials
   async getSubjects(): Promise<Subject[]> {
     return getStorage<Subject[]>('subjects', INITIAL_SUBJECTS);

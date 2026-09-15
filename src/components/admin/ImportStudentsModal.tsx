@@ -185,7 +185,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ classe
                 <p className="text-xs font-black text-slate-700 mb-2">📋 Format Kolom yang Dibutuhkan:</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { col: 'NISN', desc: '10 digit angka (wajib)', required: true },
+                    { col: 'NISN', desc: 'Nomor Induk Siswa Nasional (wajib)', required: true },
                     { col: 'NIS', desc: 'Nomor induk sekolah', required: false },
                     { col: 'Nama Lengkap', desc: 'Nama siswa lengkap', required: true },
                     { col: 'Kelas', desc: 'Contoh: X TKR, XI Mesin', required: true },

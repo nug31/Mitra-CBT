@@ -86,11 +86,11 @@ export function parseExcelFile(file: File, classes: ClassRoom[]): Promise<Import
           const className = String(row[colClassName] ?? '').trim();
           const errors: string[] = [];
 
-          // Validate NISN
+          // Validate NISN — minimal 5 digit angka, tidak harus tepat 10
           if (!nisn) {
             errors.push('NISN wajib diisi');
-          } else if (!/^\d{10}$/.test(nisn)) {
-            errors.push('NISN harus 10 digit angka');
+          } else if (!/^\d{5,}$/.test(nisn)) {
+            errors.push('NISN harus berupa angka (minimal 5 digit)');
           }
 
           // Validate Nama

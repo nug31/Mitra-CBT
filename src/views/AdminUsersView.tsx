@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/db';
 import { Student, Teacher, ClassRoom } from '../types';
-import { Users, GraduationCap, BookOpen, Search, Upload, Trash2, UserCheck } from 'lucide-react';
+import { Users, GraduationCap, Search, Upload, Trash2, Pencil } from 'lucide-react';
 import { ImportStudentsModal } from '../components/admin/ImportStudentsModal';
+import { EditTeacherModal } from '../components/admin/EditTeacherModal';
 
 export const AdminUsersView: React.FC = () => {
-  const [students, setStudents]     = useState<Student[]>([]);
-  const [teachers, setTeachers]     = useState<Teacher[]>([]);
-  const [classes, setClasses]       = useState<ClassRoom[]>([]);
-  const [activeTab, setActiveTab]   = useState<'students' | 'teachers'>('students');
-  const [search, setSearch]         = useState('');
-  const [showImport, setShowImport] = useState(false);
-  const [filterClass, setFilterClass] = useState('');
+  const [students, setStudents]         = useState<Student[]>([]);
+  const [teachers, setTeachers]         = useState<Teacher[]>([]);
+  const [classes, setClasses]           = useState<ClassRoom[]>([]);
+  const [activeTab, setActiveTab]       = useState<'students' | 'teachers'>('students');
+  const [search, setSearch]             = useState('');
+  const [showImport, setShowImport]     = useState(false);
+  const [filterClass, setFilterClass]   = useState('');
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -230,6 +232,8 @@ export const AdminUsersView: React.FC = () => {
                   <th className="p-3.5 font-bold">NIP</th>
                   <th className="p-3.5 font-bold">Spesialisasi Bidang</th>
                   <th className="p-3.5 font-bold">Email Akun</th>
+                  <th className="p-3.5 font-bold">No. HP</th>
+                  <th className="p-3.5 font-bold text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -246,6 +250,16 @@ export const AdminUsersView: React.FC = () => {
                     <td className="p-3.5 font-mono text-slate-600">{t.nip || '-'}</td>
                     <td className="p-3.5 font-semibold text-slate-700">{t.subject_specialty || '-'}</td>
                     <td className="p-3.5 font-mono text-slate-500">{t.profile?.email}</td>
+                    <td className="p-3.5 font-mono text-slate-500">{t.profile?.phone || '-'}</td>
+                    <td className="p-3.5 text-center">
+                      <button
+                        onClick={() => setEditingTeacher(t)}
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition"
+                        title="Edit data guru"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -260,6 +274,15 @@ export const AdminUsersView: React.FC = () => {
           classes={classes}
           onSuccess={handleImportSuccess}
           onClose={() => setShowImport(false)}
+        />
+      )}
+
+      {/* Edit Teacher Modal */}
+      {editingTeacher && (
+        <EditTeacherModal
+          teacher={editingTeacher}
+          onSuccess={loadData}
+          onClose={() => setEditingTeacher(null)}
         />
       )}
     </div>
