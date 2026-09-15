@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Question, QuestionOption, QuestionType, DifficultyLevel, Subject, SubjectMaterial } from '../../types';
 import { 
   X, 
@@ -57,6 +57,69 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Synchronize state whenever initialQuestion or isOpen changes
+  useEffect(() => {
+    if (isOpen) {
+      if (initialQuestion) {
+        setQuestionType(initialQuestion.question_type || 'pilihan_ganda');
+        setMaterialId(initialQuestion.material_id || (materials[0]?.id ?? ''));
+        setContent(initialQuestion.content || '');
+        setImageUrl(initialQuestion.image_url || '');
+        setDifficulty(initialQuestion.difficulty || 'sedang');
+        setWeight(initialQuestion.weight ?? 2.0);
+        setExplanation(initialQuestion.explanation || '');
+        setCompetency(initialQuestion.competency || '');
+
+        let initialOpts = (initialQuestion.options && initialQuestion.options.length > 0)
+          ? initialQuestion.options.map(o => ({ ...o }))
+          : [
+              { id: 'opt-a', option_label: 'A', content: '', is_correct: true },
+              { id: 'opt-b', option_label: 'B', content: '', is_correct: false },
+              { id: 'opt-c', option_label: 'C', content: '', is_correct: false },
+              { id: 'opt-d', option_label: 'D', content: '', is_correct: false }
+            ];
+
+        // If single choice (pilihan_ganda or benar_salah), enforce strictly ONE correct answer
+        const qType = initialQuestion.question_type || 'pilihan_ganda';
+        if (qType === 'pilihan_ganda' || qType === 'benar_salah') {
+          const correctIndices: number[] = [];
+          initialOpts.forEach((o, idx) => {
+            if (o.is_correct) correctIndices.push(idx);
+          });
+          if (correctIndices.length > 1) {
+            // If multiple keys were accidentally saved, keep only the last one as correct
+            const keepIdx = correctIndices[correctIndices.length - 1];
+            initialOpts = initialOpts.map((o, idx) => ({
+              ...o,
+              is_correct: idx === keepIdx
+            }));
+          } else if (correctIndices.length === 0 && initialOpts.length > 0) {
+            initialOpts[0].is_correct = true;
+          }
+        }
+
+        setOptions(initialOpts);
+      } else {
+        // Reset form for new question
+        setQuestionType('pilihan_ganda');
+        setMaterialId(materials[0]?.id ?? '');
+        setContent('');
+        setImageUrl('');
+        setDifficulty('sedang');
+        setWeight(2.0);
+        setExplanation('');
+        setCompetency('');
+        setOptions([
+          { id: 'opt-a', option_label: 'A', content: '', is_correct: true },
+          { id: 'opt-b', option_label: 'B', content: '', is_correct: false },
+          { id: 'opt-c', option_label: 'C', content: '', is_correct: false },
+          { id: 'opt-d', option_label: 'D', content: '', is_correct: false }
+        ]);
+      }
+      setError(null);
+    }
+  }, [isOpen, initialQuestion, materials]);
 
   if (!isOpen) return null;
 

@@ -224,6 +224,15 @@ export function parseQuestionsFromHtmlAndText(
       const label = optMatch[1].toUpperCase();
       let optText = optMatch[2].trim();
 
+      // Check if option contains an inline key marker e.g. "(kunci)", "(benar)", "*", "[x]"
+      const hasInlineMarker = /\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/i.test(optText) || text.startsWith('*');
+      if (hasInlineMarker) {
+        optText = optText.replace(/\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/gi, '').trim();
+        if (!currentQ.key) {
+          currentQ.key = label;
+        }
+      }
+
       // Check if this line contains MULTIPLE inline options (e.g. "A. Opsi 1  B. Opsi 2")
       const inlineSplit = optText.split(/\s+(?=[B-Eb-e][\.\)])/);
       if (inlineSplit.length > 1) {
@@ -239,9 +248,17 @@ export function parseQuestionsFromHtmlAndText(
           const part = inlineSplit[s].trim();
           const subMatch = part.match(/^([B-Eb-e])[\.\)]\s*(.*)$/);
           if (subMatch) {
+            let subText = subMatch[2].trim();
+            const subHasMarker = /\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/i.test(subText);
+            if (subHasMarker) {
+              subText = subText.replace(/\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/gi, '').trim();
+              if (!currentQ.key) {
+                currentQ.key = subMatch[1].toUpperCase();
+              }
+            }
             currentQ.options.push({
               label: subMatch[1].toUpperCase(),
-              text: subMatch[2].trim()
+              text: subText
             });
           }
         }
@@ -297,10 +314,22 @@ export function parseQuestionsFromHtmlAndText(
       }
     }
 
-    // Build final options
+    // Extract key labels (only distinct letters A-E)
     const rawKey = (q.key || '').toUpperCase();
+    const matchedKeyLabels = Array.from(new Set(rawKey.match(/\b[A-E]\b/g) || rawKey.match(/[A-E]/g) || []));
+
+    // Determine active keys based on question type
+    let activeKeys: string[] = [];
+    if (finalType === 'pg_kompleks') {
+      activeKeys = matchedKeyLabels;
+    } else {
+      // For single choice (pilihan_ganda or benar_salah): STRICTLY ONE KEY CAN BE CORRECT!
+      // If multiple keys were matched, keep only the first valid key
+      activeKeys = matchedKeyLabels.slice(0, 1);
+    }
+
     const finalOptions: ParsedWordOption[] = q.options.map(opt => {
-      const isCorrect = rawKey.split(/[\s,]+/).includes(opt.label);
+      const isCorrect = activeKeys.includes(opt.label);
       return {
         label: opt.label,
         content: opt.text,
@@ -319,7 +348,7 @@ export function parseQuestionsFromHtmlAndText(
     } else if (finalType === 'pilihan_ganda' && finalOptions.length < 2) {
       isValid = false;
       error = `Pilihan ganda membutuhkan minimal 2 opsi (terdeteksi ${finalOptions.length})`;
-    } else if (!rawKey && finalType !== 'isian_singkat') {
+    } else if (activeKeys.length === 0 && finalType !== 'isian_singkat') {
       isValid = false;
       error = 'Kunci jawaban belum terdeteksi (klik huruf opsi untuk memilih)';
     } else if (finalOptions.length > 0 && !finalOptions.some(o => o.isCorrect) && finalType !== 'isian_singkat') {
