@@ -87,86 +87,76 @@ export const DIAGRAM_ETIKET = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3
   <text x="360" y="180" font-size="11" fill="%2364748b" text-anchor="middle">LEMBAR: 1 DARI 2</text>
 </svg>`;
 
-// Pre-seeded Demo Profiles
+// Pre-seeded Real Profiles
 export const INITIAL_PROFILES: Profile[] = [
   {
-    id: 'user-admin-01',
-    email: 'admin@mitracbt.id',
-    full_name: 'Bambang Sudiro, S.T.',
-    role: 'admin',
-    avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
+    id: 'user-guru-01',
+    email: 'joko.setyo@mitracbt.id',
+    full_name: 'Joko Setyo Nugroho, S.T.',
+    role: 'guru',
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
     phone: '081234567890',
     created_at: '2024-07-01T08:00:00Z'
   },
   {
-    id: 'user-guru-01',
-    email: 'guru@mitracbt.id',
-    full_name: 'Hartono, S.Pd., M.T.',
-    role: 'guru',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-    phone: '081298765432',
-    created_at: '2024-07-01T08:30:00Z'
-  },
-  {
-    id: 'user-siswa-01',
-    email: 'siswa@mitracbt.id',
-    full_name: 'Andi Prasetyo',
-    role: 'siswa',
-    avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80',
-    phone: '085711223344',
-    created_at: '2024-07-15T09:00:00Z'
-  },
-  {
-    id: 'user-siswa-02',
-    email: 'budi@mitracbt.id',
-    full_name: 'Budi Santoso',
-    role: 'siswa',
-    phone: '085711223345',
-    created_at: '2024-07-15T09:00:00Z'
-  },
-  {
-    id: 'user-siswa-03',
-    email: 'candra@mitracbt.id',
-    full_name: 'Candra Wijaya',
-    role: 'siswa',
-    phone: '085711223346',
-    created_at: '2024-07-15T09:00:00Z'
-  },
-  {
-    id: 'user-siswa-04',
-    email: 'deni@mitracbt.id',
-    full_name: 'Deni Saputra',
-    role: 'siswa',
-    phone: '085711223347',
-    created_at: '2024-07-15T09:00:00Z'
-  },
-  {
-    id: 'user-siswa-05',
-    email: 'eko@mitracbt.id',
-    full_name: 'Eko Kurniawan',
-    role: 'siswa',
-    phone: '085711223348',
-    created_at: '2024-07-15T09:00:00Z'
+    id: 'user-admin-01',
+    email: 'admin@mitracbt.id',
+    full_name: 'Joko Setyo Nugroho, S.T. (Admin)',
+    role: 'admin',
+    avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
+    phone: '081234567890',
+    created_at: '2024-07-01T08:00:00Z'
   }
 ];
 
+// 8 Vocational Majors (TKR, Mesin, TSM, Elind, Akuntansi, Listrik, Hotel, TKI)
 export const INITIAL_CLASSES: ClassRoom[] = [
-  { id: 'class-01', name: 'X TKR 1', grade: 'X', major: 'Teknik Kendaraan Ringan Otomotif', academic_year: '2024/2025' },
-  { id: 'class-02', name: 'X TKR 2', grade: 'X', major: 'Teknik Kendaraan Ringan Otomotif', academic_year: '2024/2025' },
-  { id: 'class-03', name: 'XI TKR', grade: 'XI', major: 'Teknik Kendaraan Ringan Otomotif', academic_year: '2024/2025' },
-  { id: 'class-04', name: 'XII TKR', grade: 'XII', major: 'Teknik Kendaraan Ringan Otomotif', academic_year: '2024/2025' }
+  // 1. TKR
+  { id: 'cls-tkr-10', name: 'X TKR', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-11', name: 'XI TKR', grade: 'XI', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-12', name: 'XII TKR', grade: 'XII', major: 'TKR', academic_year: '2024/2025' },
+  // 2. Mesin
+  { id: 'cls-msn-10', name: 'X Mesin', grade: 'X', major: 'Mesin', academic_year: '2024/2025' },
+  { id: 'cls-msn-11', name: 'XI Mesin', grade: 'XI', major: 'Mesin', academic_year: '2024/2025' },
+  { id: 'cls-msn-12', name: 'XII Mesin', grade: 'XII', major: 'Mesin', academic_year: '2024/2025' },
+  // 3. TSM
+  { id: 'cls-tsm-10', name: 'X TSM', grade: 'X', major: 'TSM', academic_year: '2024/2025' },
+  { id: 'cls-tsm-11', name: 'XI TSM', grade: 'XI', major: 'TSM', academic_year: '2024/2025' },
+  { id: 'cls-tsm-12', name: 'XII TSM', grade: 'XII', major: 'TSM', academic_year: '2024/2025' },
+  // 4. Elind
+  { id: 'cls-eld-10', name: 'X Elind', grade: 'X', major: 'Elind', academic_year: '2024/2025' },
+  { id: 'cls-eld-11', name: 'XI Elind', grade: 'XI', major: 'Elind', academic_year: '2024/2025' },
+  { id: 'cls-eld-12', name: 'XII Elind', grade: 'XII', major: 'Elind', academic_year: '2024/2025' },
+  // 5. Akuntansi
+  { id: 'cls-akt-10', name: 'X Akuntansi', grade: 'X', major: 'Akuntansi', academic_year: '2024/2025' },
+  { id: 'cls-akt-11', name: 'XI Akuntansi', grade: 'XI', major: 'Akuntansi', academic_year: '2024/2025' },
+  { id: 'cls-akt-12', name: 'XII Akuntansi', grade: 'XII', major: 'Akuntansi', academic_year: '2024/2025' },
+  // 6. Listrik
+  { id: 'cls-ltr-10', name: 'X Listrik', grade: 'X', major: 'Listrik', academic_year: '2024/2025' },
+  { id: 'cls-ltr-11', name: 'XI Listrik', grade: 'XI', major: 'Listrik', academic_year: '2024/2025' },
+  { id: 'cls-ltr-12', name: 'XII Listrik', grade: 'XII', major: 'Listrik', academic_year: '2024/2025' },
+  // 7. Hotel
+  { id: 'cls-htl-10', name: 'X Hotel', grade: 'X', major: 'Hotel', academic_year: '2024/2025' },
+  { id: 'cls-htl-11', name: 'XI Hotel', grade: 'XI', major: 'Hotel', academic_year: '2024/2025' },
+  { id: 'cls-htl-12', name: 'XII Hotel', grade: 'XII', major: 'Hotel', academic_year: '2024/2025' },
+  // 8. TKI
+  { id: 'cls-tki-10', name: 'X TKI', grade: 'X', major: 'TKI', academic_year: '2024/2025' },
+  { id: 'cls-tki-11', name: 'XI TKI', grade: 'XI', major: 'TKI', academic_year: '2024/2025' },
+  { id: 'cls-tki-12', name: 'XII TKI', grade: 'XII', major: 'TKI', academic_year: '2024/2025' },
 ];
 
-export const INITIAL_STUDENTS: Student[] = [
-  { id: 'student-01', profile_id: 'user-siswa-01', nis: '20241001', nisn: '0071234561', class_id: 'class-02', status: 'active', profile: INITIAL_PROFILES[2], class: INITIAL_CLASSES[1] },
-  { id: 'student-02', profile_id: 'user-siswa-02', nis: '20241002', nisn: '0071234562', class_id: 'class-02', status: 'active', profile: INITIAL_PROFILES[3], class: INITIAL_CLASSES[1] },
-  { id: 'student-03', profile_id: 'user-siswa-03', nis: '20241003', nisn: '0071234563', class_id: 'class-02', status: 'active', profile: INITIAL_PROFILES[4], class: INITIAL_CLASSES[1] },
-  { id: 'student-04', profile_id: 'user-siswa-04', nis: '20241004', nisn: '0071234564', class_id: 'class-02', status: 'active', profile: INITIAL_PROFILES[5], class: INITIAL_CLASSES[1] },
-  { id: 'student-05', profile_id: 'user-siswa-05', nis: '20241005', nisn: '0071234565', class_id: 'class-02', status: 'active', profile: INITIAL_PROFILES[6], class: INITIAL_CLASSES[1] }
-];
+// Real Students: Initially empty, populated by user Excel Import
+export const INITIAL_STUDENTS: Student[] = [];
 
+// Real Teacher: Joko Setyo Nugroho, S.T.
 export const INITIAL_TEACHERS: Teacher[] = [
-  { id: 'teacher-01', profile_id: 'user-guru-01', nip: '197905142005011003', subject_specialty: 'Teknik Otomotif & Gambar Teknik', profile: INITIAL_PROFILES[1] }
+  { 
+    id: 'teacher-01', 
+    profile_id: 'user-guru-01', 
+    nip: '198506152010011012', 
+    subject_specialty: 'Teknik Mesin & Rekayasa Kejuruan', 
+    profile: INITIAL_PROFILES[0] 
+  }
 ];
 
 export const INITIAL_SUBJECTS: Subject[] = [
@@ -368,10 +358,10 @@ export const INITIAL_QUESTIONS: Question[] = [
 export const INITIAL_EXAMS: Exam[] = [
   {
     id: 'exam-01',
-    title: 'STS Gambar Teknik X TKR 2',
+    title: 'STS Gambar Teknik XI TKR',
     assessment_type_id: 'eval-01',
     subject_id: 'subj-01',
-    class_id: 'class-02',
+    class_id: 'cls-tkr-11',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -396,10 +386,10 @@ export const INITIAL_EXAMS: Exam[] = [
   },
   {
     id: 'exam-02',
-    title: 'SAS Konversi Energi X TKR 2',
+    title: 'SAS Konversi Energi XI TKR',
     assessment_type_id: 'eval-02',
     subject_id: 'subj-02',
-    class_id: 'class-02',
+    class_id: 'cls-tkr-11',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -424,10 +414,10 @@ export const INITIAL_EXAMS: Exam[] = [
   },
   {
     id: 'exam-03',
-    title: 'Ulangan Harian Motor Bakar X TKR 2',
+    title: 'Ulangan Harian Motor Bakar X TKR',
     assessment_type_id: 'eval-03',
     subject_id: 'subj-02',
-    class_id: 'class-02',
+    class_id: 'cls-tkr-10',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -447,184 +437,34 @@ export const INITIAL_EXAMS: Exam[] = [
     status: 'finished',
     assessment_type: INITIAL_ASSESSMENT_TYPES[2],
     subject: INITIAL_SUBJECTS[1],
-    class: INITIAL_CLASSES[1],
+    class: INITIAL_CLASSES[0],
     questions: [INITIAL_QUESTIONS[1], INITIAL_QUESTIONS[3], INITIAL_QUESTIONS[4], INITIAL_QUESTIONS[5]]
   }
 ];
 
-export const INITIAL_PARTICIPANTS: ExamParticipant[] = [
-  {
-    id: 'part-01',
-    exam_id: 'exam-01',
-    student_id: 'student-01', // Andi Prasetyo
-    status: 'not_started',
-    tab_switch_count: 0,
-    cheat_warning_count: 0,
-    remaining_seconds: 90 * 60,
-    student: INITIAL_STUDENTS[0],
-    exam: INITIAL_EXAMS[0]
-  },
-  {
-    id: 'part-02',
-    exam_id: 'exam-01',
-    student_id: 'student-02', // Budi Santoso
-    status: 'in_progress',
-    tab_switch_count: 1,
-    cheat_warning_count: 1,
-    remaining_seconds: 45 * 60,
-    student: INITIAL_STUDENTS[1],
-    exam: INITIAL_EXAMS[0]
-  },
-  {
-    id: 'part-03',
-    exam_id: 'exam-01',
-    student_id: 'student-03', // Candra Wijaya
-    status: 'submitted',
-    score: 87.5,
-    passed: true,
-    tab_switch_count: 0,
-    cheat_warning_count: 0,
-    remaining_seconds: 0,
-    student: INITIAL_STUDENTS[2],
-    exam: INITIAL_EXAMS[0]
-  },
-  {
-    id: 'part-04',
-    exam_id: 'exam-01',
-    student_id: 'student-04', // Deni Saputra
-    status: 'in_progress',
-    tab_switch_count: 4,
-    cheat_warning_count: 3,
-    remaining_seconds: 22 * 60,
-    student: INITIAL_STUDENTS[3],
-    exam: INITIAL_EXAMS[0]
-  },
-  {
-    id: 'part-05',
-    exam_id: 'exam-01',
-    student_id: 'student-05', // Eko Kurniawan
-    status: 'not_started',
-    tab_switch_count: 0,
-    cheat_warning_count: 0,
-    remaining_seconds: 90 * 60,
-    student: INITIAL_STUDENTS[4],
-    exam: INITIAL_EXAMS[0]
-  }
-];
+// Participants & Events: kosong — siswa diimport via Excel
+export const INITIAL_PARTICIPANTS: ExamParticipant[] = [];
 
-export const INITIAL_EVENTS: ExamEvent[] = [
-  {
-    id: 'ev-01',
-    exam_id: 'exam-01',
-    participant_id: 'part-02',
-    event_type: 'START_EXAM',
-    details: { browser: 'Chrome 128 (Chromebook)' },
-    created_at: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
-    participant_name: 'Budi Santoso'
-  },
-  {
-    id: 'ev-02',
-    exam_id: 'exam-01',
-    participant_id: 'part-04',
-    event_type: 'TAB_SWITCH',
-    details: { reason: 'Siswa berpindah jendela / tab browser' },
-    created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    participant_name: 'Deni Saputra'
-  },
-  {
-    id: 'ev-03',
-    exam_id: 'exam-01',
-    participant_id: 'part-04',
-    event_type: 'FULLSCREEN_EXIT',
-    details: { reason: 'Keluar dari mode layar penuh (fullscreen)' },
-    created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    participant_name: 'Deni Saputra'
-  },
-  {
-    id: 'ev-04',
-    exam_id: 'exam-01',
-    participant_id: 'part-03',
-    event_type: 'SUBMIT_EXAM',
-    details: { answered: 3, total: 3, finish_time: '25m 10s' },
-    created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    participant_name: 'Candra Wijaya'
-  }
-];
+export const INITIAL_EVENTS: ExamEvent[] = [];
 
-export const INITIAL_EXAM_RESULTS: ExamResult[] = [
-  {
-    id: 'res-01',
-    exam_id: 'exam-03',
-    participant_id: 'part-03',
-    total_score: 87.5,
-    max_possible_score: 100,
-    percentage: 87.5,
-    correct_count: 3,
-    wrong_count: 1,
-    unattempted_count: 0,
-    passed: true,
-    graded_at: '2024-09-01T10:00:00Z',
-    participant: INITIAL_PARTICIPANTS[2]
-  },
-  {
-    id: 'res-02',
-    exam_id: 'exam-03',
-    participant_id: 'part-02',
-    total_score: 65.0,
-    max_possible_score: 100,
-    percentage: 65.0,
-    correct_count: 2,
-    wrong_count: 2,
-    unattempted_count: 0,
-    passed: false, // Perlu remedial (KKM 75)
-    graded_at: '2024-09-01T10:00:00Z',
-    participant: INITIAL_PARTICIPANTS[1]
-  },
-  {
-    id: 'res-03',
-    exam_id: 'exam-03',
-    participant_id: 'part-04',
-    total_score: 60.0,
-    max_possible_score: 100,
-    percentage: 60.0,
-    correct_count: 2,
-    wrong_count: 2,
-    unattempted_count: 0,
-    passed: false, // Perlu remedial (KKM 75)
-    graded_at: '2024-09-01T10:00:00Z',
-    participant: INITIAL_PARTICIPANTS[3]
-  },
-  {
-    id: 'res-04',
-    exam_id: 'exam-03',
-    participant_id: 'part-01',
-    total_score: 92.5,
-    max_possible_score: 100,
-    percentage: 92.5,
-    correct_count: 4,
-    wrong_count: 0,
-    unattempted_count: 0,
-    passed: true,
-    graded_at: '2024-09-01T10:00:00Z',
-    participant: INITIAL_PARTICIPANTS[0]
-  }
-];
+// Hasil ujian: kosong — akan terisi setelah siswa diimport dan mengerjakan ujian
+export const INITIAL_EXAM_RESULTS: ExamResult[] = [];
 
 export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   {
     id: 'audit-01',
     user_id: 'user-admin-01',
-    user_name: 'Bambang S. (Admin)',
+    user_name: 'Joko Setyo Nugroho, S.T. (Admin)',
     action: 'CREATE_EXAM',
     entity_type: 'exam',
     entity_id: 'exam-01',
-    details: { exam_title: 'STS Gambar Teknik X TKR 2', pin: 'GT902' },
+    details: { exam_title: 'STS Gambar Teknik XI TKR', pin: 'GT902' },
     created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString()
   },
   {
     id: 'audit-02',
     user_id: 'user-guru-01',
-    user_name: 'Hartono, S.Pd. (Guru)',
+    user_name: 'Joko Setyo Nugroho, S.T.',
     action: 'CREATE_QUESTION',
     entity_type: 'question',
     entity_id: 'q-01',
@@ -634,10 +474,10 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   {
     id: 'audit-03',
     user_id: 'user-admin-01',
-    user_name: 'Bambang S. (Admin)',
-    action: 'IMPORT_STUDENTS',
-    entity_type: 'student',
-    details: { count: 36, class_name: 'X TKR 2' },
+    user_name: 'Joko Setyo Nugroho, S.T. (Admin)',
+    action: 'SETUP_SYSTEM',
+    entity_type: 'system',
+    details: { message: 'Sistem Mitra CBT diinisialisasi. Siswa akan diimport via Excel.' },
     created_at: new Date(Date.now() - 8 * 3600 * 1000).toISOString()
   }
 ];
