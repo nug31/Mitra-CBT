@@ -355,6 +355,14 @@ class DBService {
     return saved;
   }
 
+  async deleteExam(id: string): Promise<void> {
+    const exams = getStorage<Exam[]>('exams', INITIAL_EXAMS);
+    const filtered = exams.filter(e => e.id !== id);
+    setStorage('exams', filtered);
+    this.logAudit('DELETE_EXAM', 'exam', id, {});
+    realtimeBus.emit('exams_updated', { id, deleted: true });
+  }
+
   // Participants & Sessions
   async getExamParticipants(examId: string): Promise<ExamParticipant[]> {
     const participants = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);

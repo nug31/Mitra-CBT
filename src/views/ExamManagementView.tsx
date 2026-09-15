@@ -13,7 +13,8 @@ import {
   Activity, 
   BarChart3, 
   Clock, 
-  KeyRound, 
+  Edit2, 
+  Trash2, 
   CheckCircle2, 
   AlertCircle,
   GraduationCap,
@@ -64,6 +65,18 @@ export const ExamManagementView: React.FC<ExamManagementViewProps> = ({
   const handleSaveExam = async (examData: Partial<Exam>) => {
     await db.saveExam(examData);
     await loadData();
+  };
+
+  const handleEditExam = (exam: Exam) => {
+    setEditingExam(exam);
+    setIsExamModalOpen(true);
+  };
+
+  const handleDeleteExam = async (exam: Exam) => {
+    if (window.confirm(`Hapus ujian "${exam.title}"?\n\nTindakan ini tidak dapat dibatalkan.`)) {
+      await db.deleteExam(exam.id);
+      await loadData();
+    }
   };
 
   const filteredExams = exams.filter(e => {
@@ -202,21 +215,45 @@ export const ExamManagementView: React.FC<ExamManagementViewProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setQrModalExam(exam)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow-xs"
-                >
-                  <Projector className="w-3.5 h-3.5 text-sky-400" />
-                  <span>PIN & QR Code</span>
-                </button>
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              {/* Row 1: QR + PIN + Edit + Delete */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setQrModalExam(exam)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow-xs"
+                  >
+                    <Projector className="w-3.5 h-3.5 text-sky-400" />
+                    <span>PIN & QR Code</span>
+                  </button>
 
-                <div className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-mono text-xs font-bold border border-slate-200">
-                  PIN: {exam.pin_code}
+                  <div className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-mono text-xs font-bold border border-slate-200">
+                    PIN: {exam.pin_code}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handleEditExam(exam)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 text-xs font-semibold transition"
+                    title="Edit kelas, durasi, dan pengaturan ujian"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteExam(exam)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 text-xs font-semibold transition"
+                    title="Hapus ujian ini"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus</span>
+                  </button>
                 </div>
               </div>
 
+              {/* Row 2: Monitoring + Hasil */}
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => onNavigateToMonitoring(exam.id)}

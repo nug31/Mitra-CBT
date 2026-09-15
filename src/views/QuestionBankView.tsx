@@ -39,6 +39,7 @@ export const QuestionBankView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [gradeFilter, setGradeFilter] = useState<string>('all');
 
   // Modals
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -115,6 +116,19 @@ export const QuestionBankView: React.FC = () => {
 
   const selectedBank = banks.find(b => b.id === selectedBankId);
 
+  // Derive grade from bank title (e.g. "Kelas X", "XI", "XII" keywords)
+  const getBankGrade = (bank: QuestionBank): string => {
+    const t = (bank.title + ' ' + (bank.description || '')).toUpperCase();
+    if (t.includes(' XII') || t.includes('KELAS XII')) return 'XII';
+    if (t.includes(' XI') || t.includes('KELAS XI')) return 'XI';
+    if (t.includes(' X ') || t.includes('KELAS X') || t.includes('KELAS X\n')) return 'X';
+    return 'Semua';
+  };
+
+  const filteredBanks = gradeFilter === 'all'
+    ? banks
+    : banks.filter(b => getBankGrade(b) === gradeFilter);
+
   // Filter questions
   const filteredQuestions = questions.filter(q => {
     const matchSearch = q.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -171,30 +185,64 @@ export const QuestionBankView: React.FC = () => {
         </div>
       </div>
 
-      {/* Bank Selector Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {banks.map((b) => (
-          <button
-            key={b.id}
-            onClick={() => setSelectedBankId(b.id)}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-2 border ${
-              selectedBankId === b.id
-                ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <span>{b.title}</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                selectedBankId === b.id
-                  ? 'bg-white/20 text-white'
-                  : 'bg-slate-100 text-slate-600'
+      {/* Grade Filter + Bank Selector */}
+      <div className="space-y-3">
+        {/* Grade level pills */}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide shrink-0">Filter Kelas:</span>
+          {(['all', 'X', 'XI', 'XII'] as const).map((grade) => (
+            <button
+              key={grade}
+              onClick={() => setGradeFilter(grade)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition border shrink-0 ${
+                gradeFilter === grade
+                  ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              {b.question_count || 0} Soal
-            </span>
-          </button>
-        ))}
+              {grade === 'all' ? 'Semua Kelas' : `Kelas ${grade}`}
+            </button>
+          ))}
+        </div>
+
+        {/* Bank Selector Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {filteredBanks.map((b) => {
+            const grade = getBankGrade(b);
+            return (
+              <button
+                key={b.id}
+                onClick={() => setSelectedBankId(b.id)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-2 border ${
+                  selectedBankId === b.id
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {grade !== 'Semua' && (
+                  <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+                    selectedBankId === b.id ? 'bg-white/20 text-white' : 'bg-brand-100 text-brand-700'
+                  }`}>
+                    Kelas {grade}
+                  </span>
+                )}
+                <span>{b.title}</span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    selectedBankId === b.id
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {b.question_count || 0} Soal
+                </span>
+              </button>
+            );
+          })}
+          {filteredBanks.length === 0 && (
+            <p className="text-xs text-slate-400 italic px-2">Tidak ada bank soal untuk kelas {gradeFilter}.</p>
+          )}
+        </div>
       </div>
 
       {/* Filter and Search Bar */}

@@ -68,7 +68,48 @@ export const ExamModal: React.FC<ExamModalProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
 
-  // Auto-generate title based on Type, Subject, and Class
+  // Sync all form fields whenever the modal opens or initialExam changes (Edit mode)
+  useEffect(() => {
+    if (!isOpen) return;
+    if (initialExam) {
+      setAssessmentTypeId(initialExam.assessment_type_id || (assessmentTypes[0]?.id ?? ''));
+      setSubjectId(initialExam.subject_id || (subjects[0]?.id ?? ''));
+      setClassId(initialExam.class_id || (classes[0]?.id ?? ''));
+      setTitle(initialExam.title || '');
+      setAcademicYear(initialExam.academic_year || '2024/2025');
+      setSemester(initialExam.semester || 'Ganjil');
+      setDurationMinutes(initialExam.duration_minutes || 90);
+      setKkm(initialExam.kkm || 75);
+      setQuestionCount(initialExam.question_count || 40);
+      setRandomizeQuestions(initialExam.randomize_questions ?? true);
+      setRandomizeOptions(initialExam.randomize_options ?? true);
+      setAllowBackward(initialExam.allow_backward ?? true);
+      setFullscreenMode(initialExam.fullscreen_mode ?? true);
+      setSingleAttempt(initialExam.single_attempt ?? true);
+      setShowResultsImmediately(initialExam.show_results_immediately ?? false);
+      setShowExplanation(initialExam.show_explanation ?? false);
+    } else {
+      // Reset for new exam
+      setAssessmentTypeId(assessmentTypes[0]?.id ?? '');
+      setSubjectId(subjects[0]?.id ?? '');
+      setClassId(classes[0]?.id ?? '');
+      setTitle('');
+      setAcademicYear('2024/2025');
+      setSemester('Ganjil');
+      setDurationMinutes(90);
+      setKkm(75);
+      setQuestionCount(40);
+      setRandomizeQuestions(true);
+      setRandomizeOptions(true);
+      setAllowBackward(true);
+      setFullscreenMode(true);
+      setSingleAttempt(true);
+      setShowResultsImmediately(false);
+      setShowExplanation(false);
+    }
+  }, [isOpen, initialExam]);
+
+  // Auto-generate title based on Type, Subject, and Class (only for new exams)
   useEffect(() => {
     if (!initialExam) {
       const selectedType = assessmentTypes.find(t => t.id === assessmentTypeId);
