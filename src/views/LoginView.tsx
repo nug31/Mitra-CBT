@@ -30,8 +30,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   // Tab: 'siswa' or 'guru_admin'
   const [activeTab, setActiveTab] = useState<'siswa' | 'guru_admin'>('siswa');
 
-  // Siswa Form — only NISN needed (password = NISN by default)
+  // Siswa Form
   const [nisn, setNisn] = useState('');
+  const [namaLengkap, setNamaLengkap] = useState('');
 
   // Guru/Admin Form
   const [teacherEmail, setTeacherEmail] = useState('');
@@ -48,8 +49,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
     setErrorMessage(null);
     setLoading(true);
 
-    // Password for student login is always NISN itself
-    const res = await loginWithNisn(nisn, nisn);
+    const res = await loginWithNisn(nisn, nisn, namaLengkap.trim());
     setLoading(false);
 
     if (res.success) {
@@ -171,29 +171,48 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 <div className="leading-relaxed">
                   <p className="font-bold">Akses Ujian Siswa:</p>
                   <p className="text-[11px] text-emerald-700 mt-0.5">
-                    Masukkan <strong>NISN</strong> Anda, lalu klik <strong>Masuk</strong>.
+                    Isi <strong>Nama Lengkap</strong> dan <strong>NISN</strong>, lalu klik <strong>Masuk</strong>.
                     {examIdParam && ' Ujian dari QR Code akan terbuka otomatis.'}
                   </p>
+                </div>
+              </div>
+
+              {/* Nama Lengkap Input */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Nama Lengkap <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="input-nama"
+                    type="text"
+                    required
+                    value={namaLengkap}
+                    onChange={(e) => setNamaLengkap(e.target.value)}
+                    placeholder="Masukkan nama lengkap Anda..."
+                    className="w-full pl-10 pr-4 py-3 sm:py-3 rounded-xl border border-slate-300 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    autoFocus
+                  />
                 </div>
               </div>
 
               {/* NISN Input */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  NISN Siswa
+                  NISN Siswa <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <BookOpen className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     id="input-nisn"
                     type="text"
                     inputMode="numeric"
                     required
                     value={nisn}
-                    onChange={(e) => setNisn(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => setNisn(e.target.value.trim())}
                     placeholder="Masukkan NISN Anda..."
                     className="w-full pl-10 pr-4 py-3 sm:py-3 rounded-xl border border-slate-300 text-base sm:text-sm font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    autoFocus
                   />
                 </div>
               </div>
@@ -202,7 +221,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
               <button
                 id="btn-login-siswa"
                 type="submit"
-                disabled={loading || nisn.length < 6}
+                disabled={loading || nisn.length < 5 || namaLengkap.trim().length < 3}
                 className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
               >
                 {loading ? (

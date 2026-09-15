@@ -9,7 +9,7 @@ interface AuthContextType {
   role: Role;
   isLoading: boolean;
   login: (email: string, role?: Role) => Promise<boolean>;
-  loginWithNisn: (nisn: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithNisn: (nisn: string, password: string, displayName?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithCredentials: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   switchRole: (newRole: Role) => Promise<void>;
@@ -109,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Student Login using NISN
-  const loginWithNisn = async (nisn: string, _password: string): Promise<{ success: boolean; error?: string }> => {
+  const loginWithNisn = async (nisn: string, _password: string, displayName?: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
       const cleanNisn = nisn.trim();
@@ -121,8 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const students = await db.getStudents();
       let foundStudent = students.find(
         s => (s.nisn && s.nisn.toLowerCase() === cleanNisn.toLowerCase()) ||
-             (s.nis && s.nis.toLowerCase() === cleanNisn.toLowerCase()) ||
-             (s.profile?.full_name && s.profile.full_name.toLowerCase().includes(cleanNisn.toLowerCase()))
+             (s.nis && s.nis.toLowerCase() === cleanNisn.toLowerCase())
       );
 
       // If student not found, create a temporary guest profile so QR scan still works
@@ -130,13 +129,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const guestProfileId = `guest-${cleanNisn.replace(/\s+/g, '-')}`;
         const guestStudentId = `student-guest-${cleanNisn.replace(/\s+/g, '-')}`;
 
-        const isName = /[a-zA-Z]/.test(cleanNisn);
-        const displayName = isName ? cleanNisn : `Siswa (${cleanNisn})`;
+        // Use the name provided by the student on the login form
+        const resolvedName = displayName || `Siswa (${cleanNisn})`;
 
         const guestProfile: Profile = {
           id: guestProfileId,
           email: `${cleanNisn.replace(/\s+/g, '_')}@siswa.mitracbt.id`,
-          full_name: displayName,
+          full_name: resolvedName,
           role: 'siswa',
           created_at: new Date().toISOString()
         };
@@ -171,6 +170,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key: 'students', data: existingStudents })
         }).catch(() => {});
+      } else if (displayName && foundStudent.profile) {
+        // Student found in DB: update name if user provided a more specific name
+        // (in case the stored name is generic or different)
+        foundStudent = {
+          ...foundStudent,
+          profile: {
+            ...foundStudent.profile,
+            full_name: displayName
+          }
+        };
       }
 
       const profiles = await db.getProfiles();
@@ -179,13 +188,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         || {
           id: foundStudent.profile_id,
           email: `${cleanNisn}@siswa.mitracbt.id`,
-          full_name: foundStudent.profile?.full_name || `Siswa (${cleanNisn})`,
+          full_name: displayName || foundStudent.profile?.full_name || `Siswa (${cleanNisn})`,
           role: 'siswa' as Role,
           created_at: new Date().toISOString()
         };
 
-      setCurrentUser(profile);
-      setCurrentStudent(foundStudent);
+      // If displayName was provided, override the profile name
+      const finalProfile: Profile = displayName
+        ? { ...profile, full_name: displayName }
+        : profile;
+
+      setCurrentUser(finalProfile);
+      setCurrentStudent({ ...foundStudent, profile: finalProfile });
       setCurrentTeacher(null);
       setRole('siswa');
       localStorage.setItem('mitracbt_active_role', 'siswa');
