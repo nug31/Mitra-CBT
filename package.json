@@ -14,6 +14,7 @@
     "@types/react-is": "^19.3.0",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^1.45.0",
+    "mammoth": "^1.12.3",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

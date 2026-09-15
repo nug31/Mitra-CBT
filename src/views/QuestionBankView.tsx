@@ -20,10 +20,12 @@ import {
   BookOpenCheck,
   CheckCircle2,
   HelpCircle,
-  BarChart2
+  BarChart2,
+  FileText
 } from 'lucide-react';
 import { QuestionEditorModal } from '../components/bank/QuestionEditorModal';
 import { ExcelImportModal } from '../components/bank/ExcelImportModal';
+import { WordImportModal } from '../components/bank/WordImportModal';
 import { ImageModal } from '../components/common/ImageModal';
 
 export const QuestionBankView: React.FC = () => {
@@ -41,6 +43,7 @@ export const QuestionBankView: React.FC = () => {
   // Modals
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isExcelOpen, setIsExcelOpen] = useState(false);
+  const [isWordOpen, setIsWordOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -101,6 +104,15 @@ export const QuestionBankView: React.FC = () => {
     setBanks(updatedBanks);
   };
 
+  const handleImportWordComplete = async (imported: Partial<Question>[]) => {
+    for (const q of imported) {
+      await db.saveQuestion(q as any);
+    }
+    await loadQuestions(selectedBankId);
+    const updatedBanks = await db.getQuestionBanks();
+    setBanks(updatedBanks);
+  };
+
   const selectedBank = banks.find(b => b.id === selectedBankId);
 
   // Filter questions
@@ -130,6 +142,14 @@ export const QuestionBankView: React.FC = () => {
 
         {/* Action buttons */}
         <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setIsWordOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 text-xs font-semibold transition shadow-2xs"
+          >
+            <FileText className="w-4 h-4 text-blue-600" />
+            <span>Import Word (.docx)</span>
+          </button>
+
           <button
             onClick={() => setIsExcelOpen(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 text-xs font-semibold transition"
@@ -225,7 +245,7 @@ export const QuestionBankView: React.FC = () => {
             <BookOpenCheck className="w-12 h-12 text-slate-300 mx-auto mb-2" />
             <p className="text-sm font-semibold text-slate-700">Belum Ada Soal</p>
             <p className="text-xs text-slate-400 mt-0.5">
-              Klik "Tambah Soal Baru" atau "Import Excel" untuk menambahkan butir soal ke bank ini.
+              Klik "Tambah Soal Baru", "Import Word", atau "Import Excel" untuk menambahkan butir soal ke bank ini.
             </p>
           </div>
         ) : (
@@ -389,6 +409,14 @@ export const QuestionBankView: React.FC = () => {
         onClose={() => setIsExcelOpen(false)}
         bankId={selectedBankId}
         onImportComplete={handleImportExcelComplete}
+      />
+
+      {/* Word Modal */}
+      <WordImportModal
+        isOpen={isWordOpen}
+        onClose={() => setIsWordOpen(false)}
+        bankId={selectedBankId}
+        onImportComplete={handleImportWordComplete}
       />
 
       {/* Image Zoom Modal */}
