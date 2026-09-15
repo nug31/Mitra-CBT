@@ -95,7 +95,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ classe
             </div>
             <div>
               <h2 className="text-base font-extrabold text-slate-900">Import Siswa via Excel</h2>
-              <p className="text-xs text-slate-500">Upload file .xlsx dengan data NISN, NIS, Nama, dan Kelas</p>
+              <p className="text-xs text-slate-500">Upload file .xlsx dengan data NISN, Nama, dan Kelas</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 transition text-slate-400 hover:text-slate-700">
@@ -172,7 +172,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ classe
                   <p className="text-xs text-amber-700 mt-0.5">Download template Excel resmi Mitra CBT agar format kolom sesuai.</p>
                 </div>
                 <button
-                  onClick={e => { e.stopPropagation(); generateTemplate(); }}
+                  onClick={(e) => { e.stopPropagation(); generateTemplate(classes); }}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition flex-shrink-0"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -186,7 +186,6 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ classe
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { col: 'NISN', desc: 'Nomor Induk Siswa Nasional (wajib)', required: true },
-                    { col: 'NIS', desc: 'Nomor induk sekolah', required: false },
                     { col: 'Nama Lengkap', desc: 'Nama siswa lengkap', required: true },
                     { col: 'Kelas', desc: 'Contoh: X TKR, XI Mesin', required: true },
                   ].map(item => (
