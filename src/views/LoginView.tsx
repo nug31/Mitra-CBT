@@ -54,6 +54,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
     setLoading(false);
 
     if (res.success) {
+      // Preserve QR exam params across the login redirect via sessionStorage
+      if (examIdParam) {
+        sessionStorage.setItem('qr_exam_id', examIdParam);
+        if (pinParam) sessionStorage.setItem('qr_exam_pin', pinParam);
+      }
       if (onSuccess) onSuccess();
     } else {
       setErrorMessage(res.error || 'Login gagal.');

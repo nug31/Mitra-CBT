@@ -59,10 +59,14 @@ export const StudentPortalView: React.FC = () => {
     }
     setResults(allResults);
 
-    // Auto-detect exam from QR Code scan (?exam=...&pin=...)
+    // Auto-detect exam from QR Code scan (?exam=...&pin=...) OR sessionStorage (after login redirect)
     const urlParams = new URLSearchParams(window.location.search);
-    const scannedExamId = urlParams.get('exam');
-    const scannedPin = urlParams.get('pin');
+    const scannedExamId = urlParams.get('exam') || sessionStorage.getItem('qr_exam_id');
+    const scannedPin = urlParams.get('pin') || sessionStorage.getItem('qr_exam_pin');
+
+    // Clear sessionStorage after reading so it doesn't persist across page refreshes
+    sessionStorage.removeItem('qr_exam_id');
+    sessionStorage.removeItem('qr_exam_pin');
 
     if (scannedExamId) {
       const targetExam = allExams.find(e => e.id === scannedExamId);
@@ -96,6 +100,13 @@ export const StudentPortalView: React.FC = () => {
     });
     setPinModalExam(null);
   };
+
+  // Auto-enter exam when PIN is pre-filled from QR scan (no manual submit needed)
+  useEffect(() => {
+    if (pinModalExam && pinInput && pinInput.trim().toUpperCase() === pinModalExam.pin_code.toUpperCase()) {
+      handleVerifyPinAndEnter();
+    }
+  }, [pinModalExam, pinInput]);
 
   // If student is currently taking an exam
   if (activeSession) {
