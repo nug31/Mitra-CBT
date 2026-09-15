@@ -353,9 +353,23 @@ class DBService {
 
   // Questions
   async getQuestions(bankId?: string): Promise<Question[]> {
-    const questions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
-    if (!bankId) return questions;
-    return questions.filter(q => q.bank_id === bankId);
+    const serverQuestions = await fetchFromSyncServer<Question[]>('questions');
+    const localQuestions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
+
+    if (serverQuestions && serverQuestions.length > 0) {
+      for (const sq of serverQuestions) {
+        const idx = localQuestions.findIndex(q => q.id === sq.id);
+        if (idx >= 0) {
+          localQuestions[idx] = sq;
+        } else {
+          localQuestions.push(sq);
+        }
+      }
+      setStorage('questions', localQuestions);
+    }
+
+    if (!bankId) return localQuestions;
+    return localQuestions.filter(q => q.bank_id === bankId);
   }
 
   async getQuestionById(id: string): Promise<Question | undefined> {
@@ -400,13 +414,27 @@ class DBService {
 
   // Exams
   async getExams(): Promise<Exam[]> {
-    const exams = getStorage<Exam[]>('exams', INITIAL_EXAMS);
+    const serverExams = await fetchFromSyncServer<Exam[]>('exams');
+    const localExams = getStorage<Exam[]>('exams', INITIAL_EXAMS);
+
+    if (serverExams && serverExams.length > 0) {
+      for (const se of serverExams) {
+        const idx = localExams.findIndex(e => e.id === se.id);
+        if (idx >= 0) {
+          localExams[idx] = se;
+        } else {
+          localExams.push(se);
+        }
+      }
+      setStorage('exams', localExams);
+    }
+
     const types = await this.getAssessmentTypes();
     const subjects = await this.getSubjects();
     const classes = await this.getClasses();
     const questions = await this.getQuestions();
 
-    return exams.map(e => ({
+    return localExams.map(e => ({
       ...e,
       assessment_type: types.find(t => t.id === e.assessment_type_id),
       subject: subjects.find(s => s.id === e.subject_id),
