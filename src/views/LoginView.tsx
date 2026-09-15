@@ -1,0 +1,368 @@
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { 
+  Layers, 
+  GraduationCap, 
+  BookOpen, 
+  ShieldCheck, 
+  Lock, 
+  UserCheck, 
+  Eye, 
+  EyeOff, 
+  AlertCircle, 
+  CheckCircle2, 
+  ArrowRight,
+  Sparkles,
+  Info
+} from 'lucide-react';
+
+interface LoginViewProps {
+  onSuccess?: () => void;
+}
+
+export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
+  const { loginWithNisn, loginWithCredentials, switchRole } = useAuth();
+  
+  // Tab: 'siswa' or 'guru_admin'
+  const [activeTab, setActiveTab] = useState<'siswa' | 'guru_admin'>('siswa');
+
+  // Siswa Form
+  const [nisn, setNisn] = useState('');
+  const [studentPassword, setStudentPassword] = useState('');
+  const [showStudentPw, setShowStudentPw] = useState(false);
+
+  // Guru/Admin Form
+  const [teacherEmail, setTeacherEmail] = useState('');
+  const [teacherPassword, setTeacherPassword] = useState('');
+  const [showTeacherPw, setShowTeacherPw] = useState(false);
+
+  // States
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Quick fill student
+  const handleQuickStudentSelect = (quickNisn: string) => {
+    setNisn(quickNisn);
+    setStudentPassword(quickNisn);
+    setErrorMessage(null);
+  };
+
+  // Submit Siswa
+  const handleSubmitSiswa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setLoading(true);
+
+    const res = await loginWithNisn(nisn, studentPassword);
+    setLoading(false);
+
+    if (res.success) {
+      if (onSuccess) onSuccess();
+    } else {
+      setErrorMessage(res.error || 'Login gagal.');
+    }
+  };
+
+  // Submit Guru/Admin
+  const handleSubmitTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setLoading(true);
+
+    const res = await loginWithCredentials(teacherEmail, teacherPassword);
+    setLoading(false);
+
+    if (res.success) {
+      if (onSuccess) onSuccess();
+    } else {
+      setErrorMessage(res.error || 'Login gagal.');
+    }
+  };
+
+  // 1-Click Fast Login for Demo
+  const handleQuickRole = async (targetRole: 'guru' | 'admin') => {
+    setLoading(true);
+    await switchRole(targetRole);
+    setLoading(false);
+    if (onSuccess) onSuccess();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-brand-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100 font-sans">
+      {/* Glow Effects */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-lg z-10">
+        {/* Brand Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 text-white shadow-xl shadow-brand-500/30 mb-3">
+            <Layers className="w-8 h-8" />
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+            MITRA CBT
+          </h1>
+          <p className="text-xs uppercase tracking-widest text-sky-400 font-bold mt-0.5">
+            Digital Assessment System SMK
+          </p>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            Platform asesmen digital kejuruan: STS, SAS, Remedial, Ulangan Harian, & Ujian Teori Kejuruan
+          </p>
+        </div>
+
+        {/* Card Container */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20 text-slate-800">
+          {/* Tab Selector */}
+          <div className="flex rounded-2xl bg-slate-100 p-1 mb-6 border border-slate-200">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('siswa');
+                setErrorMessage(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'siswa'
+                  ? 'bg-white text-emerald-700 shadow-md shadow-emerald-500/10'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4 text-emerald-600" />
+              <span>Login Siswa (NISN)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('guru_admin');
+                setErrorMessage(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'guru_admin'
+                  ? 'bg-white text-brand-700 shadow-md shadow-brand-500/10'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <BookOpen className="w-4 h-4 text-brand-600" />
+              <span>Guru & Admin</span>
+            </button>
+          </div>
+
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="font-medium">{errorMessage}</div>
+            </div>
+          )}
+
+          {/* TAB 1: SISWA LOGIN (NISN USERNAME & PASSWORD) */}
+          {activeTab === 'siswa' && (
+            <form onSubmit={handleSubmitSiswa} className="space-y-4">
+              {/* NISN Info Card */}
+              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <p className="font-bold">Ketentuan Akses Ujian Siswa:</p>
+                  <p className="text-[11px] text-emerald-700 mt-0.5">
+                    Gunakan <strong>10 digit NISN</strong> sebagai <span className="underline">Username</span> dan <span className="underline">Password</span>.
+                  </p>
+                </div>
+              </div>
+
+              {/* Username Input (NISN) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Username (NISN)
+                </label>
+                <div className="relative">
+                  <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    maxLength={10}
+                    value={nisn}
+                    onChange={(e) => setNisn(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Masukkan 10 digit NISN..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              {/* Password Input (NISN) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Password (NISN)
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showStudentPw ? 'text' : 'password'}
+                    required
+                    value={studentPassword}
+                    onChange={(e) => setStudentPassword(e.target.value)}
+                    placeholder="Masukkan password (NISN)..."
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowStudentPw(!showStudentPw)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showStudentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Fill Student Demo Chips */}
+              <div className="pt-1">
+                <p className="text-[11px] font-bold text-slate-500 mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  Klik Cepat Akun Siswa (Demo):
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStudentSelect('0071234561')}
+                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
+                  >
+                    <p className="font-bold text-slate-800">Andi Prasetyo</p>
+                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234561</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStudentSelect('0071234562')}
+                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
+                  >
+                    <p className="font-bold text-slate-800">Budi Santoso</p>
+                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234562</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStudentSelect('0071234563')}
+                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
+                  >
+                    <p className="font-bold text-slate-800">Citra Dewi</p>
+                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234563</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickStudentSelect('0071234564')}
+                    className="p-2 rounded-xl text-left border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition text-[11px]"
+                  >
+                    <p className="font-bold text-slate-800">Deni Setiawan</p>
+                    <p className="text-[10px] font-mono text-emerald-700 font-semibold">NISN: 0071234564</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
+              >
+                {loading ? (
+                  <span>Memverifikasi Akun...</span>
+                ) : (
+                  <>
+                    <span>Masuk ke Ruang Ujian Siswa</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* TAB 2: GURU & ADMIN LOGIN */}
+          {activeTab === 'guru_admin' && (
+            <form onSubmit={handleSubmitTeacher} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Email atau NIP Guru
+                </label>
+                <div className="relative">
+                  <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={teacherEmail}
+                    onChange={(e) => setTeacherEmail(e.target.value)}
+                    placeholder="hartono@smkmitra.sch.id / NIP..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showTeacherPw ? 'text' : 'password'}
+                    required
+                    value={teacherPassword}
+                    onChange={(e) => setTeacherPassword(e.target.value)}
+                    placeholder="Masukkan password..."
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherPw(!showTeacherPw)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showTeacherPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Fast 1-Click Role Login */}
+              <div className="pt-2">
+                <p className="text-[11px] font-bold text-slate-500 mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  Login Instan Sebagai:
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickRole('guru')}
+                    className="p-2.5 rounded-xl text-left border border-brand-200 bg-brand-50/70 hover:bg-brand-100 transition text-[11px]"
+                  >
+                    <p className="font-bold text-brand-900">Hartono, M.T.</p>
+                    <p className="text-[10px] text-brand-600">Guru Pengampu</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickRole('admin')}
+                    className="p-2.5 rounded-xl text-left border border-rose-200 bg-rose-50/70 hover:bg-rose-100 transition text-[11px]"
+                  >
+                    <p className="font-bold text-rose-900">Bambang S., S.T.</p>
+                    <p className="text-[10px] text-rose-600">Administrator</p>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-500 hover:to-sky-500 text-white font-bold text-xs shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
+              >
+                {loading ? <span>Memverifikasi...</span> : <span>Masuk Portal Pendidik</span>}
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* Footer info */}
+        <p className="text-center text-[11px] text-slate-500 mt-5">
+          &copy; {new Date().getFullYear()} Mitra CBT — SMK Digital Assessment Architecture
+        </p>
+      </div>
+    </div>
+  );
+};
