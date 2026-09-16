@@ -40,11 +40,16 @@ export const StudentPortalView: React.FC = () => {
   const loadStudentData = async () => {
     if (!currentStudent) return;
     const allExams = await db.getExams();
-    setExams(allExams);
+    const cleanExams = allExams.filter(e => 
+      !['exam-01', 'exam-02', 'exam-03', 'exam-04'].includes(e.id) &&
+      !e.title.toLowerCase().includes('konversi') &&
+      !e.title.toLowerCase().includes('motor bakar')
+    );
+    setExams(cleanExams);
 
     // Get participant sessions for this student
     const studentSessions: ExamParticipant[] = [];
-    for (const ex of allExams) {
+    for (const ex of cleanExams) {
       const part = await db.getParticipantSession(ex.id, currentStudent.id);
       studentSessions.push(part);
     }
@@ -52,7 +57,7 @@ export const StudentPortalView: React.FC = () => {
 
     // Load results
     const allResults: ExamResult[] = [];
-    for (const ex of allExams) {
+    for (const ex of cleanExams) {
       const rList = await db.getExamResults(ex.id);
       const myResult = rList.find(r => r.participant_id === studentSessions.find(s => s.exam_id === ex.id)?.id);
       if (myResult) allResults.push(myResult);

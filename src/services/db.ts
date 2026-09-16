@@ -391,22 +391,9 @@ class DBService {
   async getQuestionBanks(): Promise<QuestionBank[]> {
     let banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
     
-    // Ensure default target_grades if not yet populated in existing localStorage
-    let modified = false;
-    banks = banks.map(b => {
-      if (!b.target_grades || b.target_grades.length === 0) {
-        modified = true;
-        if (b.id === 'bank-02' || b.title.toLowerCase().includes('engine') || b.title.toLowerCase().includes('konversi')) {
-          return { ...b, target_grades: ['X', 'XII'] };
-        } else if (b.id === 'bank-01') {
-          return { ...b, target_grades: ['X'] };
-        }
-      }
-      return b;
-    });
-    if (modified) {
-      setStorage('question_banks', banks);
-    }
+    // Purge mock bank-02 or engine banks from localStorage
+    banks = banks.filter(b => b.id !== 'bank-02' && !b.title.toLowerCase().includes('motor bakar') && !b.title.toLowerCase().includes('konversi'));
+    setStorage('question_banks', banks);
 
     const questions = await this.getQuestions();
     const subjects = await this.getSubjects();
@@ -461,18 +448,13 @@ class DBService {
       setStorage('questions', localQuestions);
     }
 
-    // Auto-clean: if bank-01 contains user-imported questions, purge old mock placeholder questions ('q-01', 'q-03', 'q-07')
-    const hasCustomQuestionsInBank1 = localQuestions.some(
-      q => q.bank_id === 'bank-01' && !['q-01', 'q-03', 'q-07'].includes(q.id)
+    // Auto-clean: purge mock placeholder questions ('q-01' through 'q-28' and any bank-02 questions)
+    const cleaned = localQuestions.filter(
+      q => q.bank_id !== 'bank-02' && !['q-01', 'q-02', 'q-03', 'q-04', 'q-05', 'q-06', 'q-07', 'q-08', 'q-09', 'q-10', 'q-11', 'q-12', 'q-13', 'q-14', 'q-15', 'q-16', 'q-17', 'q-18', 'q-19', 'q-20', 'q-21', 'q-22', 'q-23', 'q-24', 'q-25', 'q-26', 'q-27', 'q-28'].includes(q.id)
     );
-    if (hasCustomQuestionsInBank1) {
-      const cleaned = localQuestions.filter(
-        q => !(q.bank_id === 'bank-01' && ['q-01', 'q-03', 'q-07'].includes(q.id))
-      );
-      if (cleaned.length !== localQuestions.length) {
-        localQuestions = cleaned;
-        setStorage('questions', localQuestions);
-      }
+    if (cleaned.length !== localQuestions.length) {
+      localQuestions = cleaned;
+      setStorage('questions', localQuestions);
     }
 
     if (!bankId) return localQuestions;
@@ -566,30 +548,17 @@ class DBService {
       setStorage('exams', localExams);
     }
 
-    // Auto-migrate: ensure SAS Konversi Energi XI TKR has 25 questions, is active, and PIN matches NC5NZ
-    const engineExam = localExams.find(e => e.id === 'exam-02' || e.title.toLowerCase().includes('konversi energi'));
-    const initialEngineExam = INITIAL_EXAMS.find(e => e.id === 'exam-02');
-    if (engineExam && initialEngineExam) {
-      if (!engineExam.questions || engineExam.questions.length < 25 || engineExam.question_count < 25 || engineExam.status !== 'active') {
-        engineExam.question_count = 25;
-        engineExam.questions = initialEngineExam.questions;
-        engineExam.status = 'active';
-        engineExam.pin_code = initialEngineExam.pin_code;
-        setStorage('exams', localExams);
-      }
-    }
+    // Purge mock dummy exams (exam-01, exam-02, exam-03, exam-04, or any exam containing "Konversi", "Engine", "Motor Bakar")
+    const dummyIds = ['exam-01', 'exam-02', 'exam-03', 'exam-04'];
+    const filteredExams = localExams.filter(e => {
+      if (dummyIds.includes(e.id)) return false;
+      const lower = (e.title || '').toLowerCase();
+      if (lower.includes('konversi') || lower.includes('motor bakar')) return false;
+      return true;
+    });
 
-    // Auto-migrate: ensure STS Dasar Konversi TKR (XII TKR) exists in localExams
-    let engine12 = localExams.find(e => e.id === 'exam-04' || e.title.toLowerCase().includes('dasar konversi'));
-    const initialEngine12 = INITIAL_EXAMS.find(e => e.id === 'exam-04');
-    if (!engine12 && initialEngine12) {
-      localExams.push(initialEngine12);
-      setStorage('exams', localExams);
-    } else if (engine12 && initialEngine12 && (!engine12.questions || engine12.questions.length < 25 || engine12.question_count < 25)) {
-      engine12.question_count = 25;
-      engine12.questions = initialEngine12.questions;
-      engine12.pin_code = initialEngine12.pin_code;
-      engine12.status = 'active';
+    if (filteredExams.length !== localExams.length) {
+      localExams.splice(0, localExams.length, ...filteredExams);
       setStorage('exams', localExams);
     }
 
