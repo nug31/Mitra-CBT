@@ -419,102 +419,10 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     });
   };
 
-  // Start Voice AI & Speech Recognition Protection
+  // Voice AI Protection: In-browser mic recording disabled to prevent false 'buka tab' triggers from OS audio overlays & mic dialogs.
+  // Any external voice apps/notes used by students are cleanly and reliably caught by Window Blur & Fullscreen enforcement.
   const startVoiceAiProtection = async () => {
-    try {
-      // 1. Microphone Hardware Stream & AudioContext
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: false,
-              autoGainControl: true
-            } 
-          });
-          mediaStreamRef.current = stream;
-          setIsMicActive(true);
-
-          const audioTrack = stream.getAudioTracks()[0];
-          if (audioTrack) {
-            // Trigger if external app takes exclusive audio focus
-            audioTrack.onmute = () => {
-              triggerVoiceAiViolation('Asisten suara eksternal (Voice AI) mengambil alih mikrofon');
-            };
-            audioTrack.onended = () => {
-              setIsMicActive(false);
-            };
-          }
-
-          // Monitor AudioContext interruptions
-          try {
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-            if (AudioContextClass) {
-              const ctx = new AudioContextClass();
-              audioContextRef.current = ctx;
-              const source = ctx.createMediaStreamSource(stream);
-              const analyser = ctx.createAnalyser();
-              analyser.fftSize = 256;
-              source.connect(analyser);
-
-              ctx.onstatechange = () => {
-                if (ctx.state === 'suspended' || (ctx.state as any) === 'interrupted') {
-                  if (hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
-                    triggerVoiceAiViolation('Asisten suara / aplikasi eksternal menginterupsi audio');
-                  }
-                }
-              };
-            }
-          } catch {}
-        } catch (err) {
-          console.warn('Microphone permission skipped or blocked:', err);
-        }
-      }
-
-      // 2. Web Speech API (Continuous Speech & Voice Assistant Query Detection)
-      const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognitionClass) {
-        const recognizer = new SpeechRecognitionClass();
-        recognizer.continuous = true;
-        recognizer.interimResults = false;
-        recognizer.lang = 'id-ID';
-
-        recognizer.onresult = (event: any) => {
-          if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              transcript += event.results[i][0].transcript;
-            }
-          }
-          transcript = transcript.trim();
-          if (transcript.length > 2) {
-            triggerVoiceAiViolation(`Terdeteksi perintah suara / percakapan: "${transcript}"`, transcript);
-          }
-        };
-
-        recognizer.onerror = (e: any) => {
-          if (e.error !== 'not-allowed' && hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
-            setTimeout(() => {
-              try { recognizer.start(); } catch {}
-            }, 1000);
-          }
-        };
-
-        recognizer.onend = () => {
-          if (hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
-            try { recognizer.start(); } catch {}
-          }
-        };
-
-        try {
-          recognizer.start();
-          speechRecognitionRef.current = recognizer;
-        } catch {}
-      }
-    } catch (e) {
-      console.warn('Voice AI protection initialization error:', e);
-    }
+    // Disabled to prevent browser mic permission prompts and false 'buka tab' triggers
   };
 
   // Screen Integrity & Multi-Screen Checker
@@ -724,7 +632,6 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     setHasEnteredFullscreen(true);
     setIsFullscreenActive(true);
     setIsScreenShielded(false);
-    startVoiceAiProtection();
   };
 
   const currentQ = questions[currentIndex];
