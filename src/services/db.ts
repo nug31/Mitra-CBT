@@ -760,8 +760,13 @@ class DBService {
     events.unshift(newEvent); // newest first
     setStorage('events', events);
 
-    // If it's a tab switch or fullscreen exit, update participant counters
-    if (eventType === 'TAB_SWITCH' || eventType === 'FULLSCREEN_EXIT') {
+    // If it's an integrity violation (tab switch, fullscreen exit, multi-screen, voice AI), update counters
+    if (
+      eventType === 'TAB_SWITCH' || 
+      eventType === 'FULLSCREEN_EXIT' || 
+      eventType === 'MULTI_SCREEN_SPLIT' || 
+      eventType === 'VOICE_AI_DETECTED'
+    ) {
       const participants = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
       const pIdx = participants.findIndex(p => p.id === participantId);
       if (pIdx >= 0) {

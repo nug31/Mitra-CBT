@@ -17,18 +17,24 @@ import {
   Wifi, 
   WifiOff, 
   ShieldAlert, 
-  ShieldCheck,
-  ShieldX,
-  Lock,
-  AlertOctagon,
-  Ban,
+  ShieldCheck, 
+  ShieldX, 
+  Lock, 
+  AlertOctagon, 
+  Ban, 
   Send, 
   ZoomIn, 
   Layers, 
-  HelpCircle,
-  Sparkles,
-  Trophy,
-  XCircle
+  HelpCircle, 
+  Sparkles, 
+  Trophy, 
+  XCircle, 
+  Split, 
+  Mic, 
+  Smartphone, 
+  EyeOff,
+  Maximize2,
+  Volume2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { ImageModal } from '../components/common/ImageModal';
@@ -69,7 +75,15 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   const MAX_STRIKES = 3;
   const [violationCount, setViolationCount] = useState<number>(participant.cheat_warning_count || 0);
   const [tabSwitchWarningOpen, setTabSwitchWarningOpen] = useState(false);
+  const [multiScreenWarningOpen, setMultiScreenWarningOpen] = useState(false);
+  const [voiceAiWarningOpen, setVoiceAiWarningOpen] = useState(false);
+  const [detectedVoiceText, setDetectedVoiceText] = useState('');
+  const [isScreenShielded, setIsScreenShielded] = useState(false);
   const [isForceSubmitted, setIsForceSubmitted] = useState(participant.status === 'force_submitted');
+  const [hasEnteredFullscreen, setHasEnteredFullscreen] = useState(false);
+  const [isFullscreenActive, setIsFullscreenActive] = useState(false);
+  const [isMicActive, setIsMicActive] = useState(false);
+  const [lastViolationReason, setLastViolationReason] = useState('');
 
   // Modals & warnings
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -86,6 +100,11 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   const examResultRef = useRef<ExamResult | null>(null);
   const isSubmittingRef = useRef(false);
   const wasBlurredRef = useRef(false);
+  const speechRecognitionRef = useRef<any>(null);
+  const audioContextRef = useRef<any>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const screenCheckTimerRef = useRef<any>(null);
+  const lastViolationTimeRef = useRef<number>(0);
 
   // Synchronize live refs
   useEffect(() => {
@@ -96,9 +115,18 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     isSubmittingRef.current = isSubmitting;
   }, [isSubmitting]);
 
+  // Check initial fullscreen state and initialize
   useEffect(() => {
+    if (document.fullscreenElement) {
+      setHasEnteredFullscreen(true);
+      setIsFullscreenActive(true);
+    }
     initExamSession();
     setupAntiCheatingListeners();
+
+    return () => {
+      stopAllProtection();
+    };
   }, []);
 
   // Timer countdown effect
@@ -147,6 +175,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           total_questions: questions.length || 25,
           tab_switch_count: participant.tab_switch_count || 0,
           cheat_warning_count: violationCount,
+          last_violation: lastViolationReason,
+          is_shielded: isScreenShielded,
+          is_mic_active: isMicActive,
           last_active: new Date().toISOString()
         });
       } catch (e) {
@@ -170,7 +201,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
       unsubPing();
       try { channel.untrack(); } catch (e) {}
     };
-  }, [remainingSeconds, answersMap, violationCount, isForceSubmitted, examResult, exam.id, participant.id, questions.length]);
+  }, [remainingSeconds, answersMap, violationCount, isForceSubmitted, examResult, exam.id, participant.id, questions.length, isScreenShielded, isMicActive, lastViolationReason]);
 
   const initExamSession = async () => {
     let qList = exam.questions || (await db.getQuestions());
@@ -210,18 +241,47 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     hasStartedRef.current = true;
   };
 
+  // Stop and clean up all protections (mic, audio context, speech, timers)
+  const stopAllProtection = () => {
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.abort();
+        speechRecognitionRef.current = null;
+      } catch {}
+    }
+    if (mediaStreamRef.current) {
+      try {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      } catch {}
+      setIsMicActive(false);
+    }
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      } catch {}
+    }
+    if (screenCheckTimerRef.current) {
+      clearInterval(screenCheckTimerRef.current);
+      screenCheckTimerRef.current = null;
+    }
+  };
+
   // Automated force submit if student exceeds maximum violations
-  const handleAutoForceSubmit = async (finalCount: number) => {
+  const handleAutoForceSubmit = async (finalCount: number, reasonText?: string) => {
     if (isSubmittingRef.current || examResultRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
+    stopAllProtection();
+
     try {
       await db.logEvent(
         exam.id,
         participant.id,
         'FORCE_SUBMIT',
         { 
-          reason: `Ujian dikunci otomatis karena melanggar batas maksimal buka tab / aplikasi (${finalCount}x).`,
+          reason: reasonText || `Ujian dikunci otomatis karena melanggar batas maksimal integritas (${finalCount}x).`,
           force_submitted: true 
         },
         participant.student?.profile?.full_name
@@ -233,6 +293,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
       setIsForceSubmitted(true);
       setTabSwitchWarningOpen(false);
       setFullscreenWarningOpen(false);
+      setMultiScreenWarningOpen(false);
+      setVoiceAiWarningOpen(false);
+      setIsScreenShielded(false);
     } catch (e) {
       console.error('Failed to auto-submit breached exam:', e);
     } finally {
@@ -241,73 +304,295 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     }
   };
 
-  const setupAntiCheatingListeners = () => {
-    const registerBreach = () => {
-      if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
-      wasBlurredRef.current = true;
-    };
+  // 1. Trigger Tab Switch / Window Blur Breach
+  const triggerTabSwitchViolation = (reason?: string) => {
+    if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+    const now = Date.now();
+    if (now - lastViolationTimeRef.current < 1500) return; // Debounce fast consecutive blurs
+    lastViolationTimeRef.current = now;
 
-    const handleReturnFromBreach = () => {
-      if (!wasBlurredRef.current || !hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
-      wasBlurredRef.current = false;
+    const note = reason || 'Membuka tab baru / beralih jendela aplikasi';
+    setLastViolationReason(note);
 
-      setViolationCount((prev) => {
-        const next = prev + 1;
-        db.logEvent(
-          exam.id,
-          participant.id,
-          'TAB_SWITCH',
-          { 
-            count: next, 
-            max: MAX_STRIKES, 
-            time: new Date().toLocaleTimeString('id-ID'),
-            note: `Membuka tab baru / beralih aplikasi (${next}x)`,
-            student_name: participant.student?.profile?.full_name || 'Peserta',
-            nis: participant.student?.nis || '-',
-            exam_title: exam.title,
-            class_name: exam.class?.name || 'Kelas'
-          },
-          participant.student?.profile?.full_name
-        );
+    setViolationCount((prev) => {
+      const next = prev + 1;
+      db.logEvent(
+        exam.id,
+        participant.id,
+        'TAB_SWITCH',
+        { 
+          count: next, 
+          max: MAX_STRIKES, 
+          time: new Date().toLocaleTimeString('id-ID'),
+          note: `${note} (${next}x)`,
+          student_name: participant.student?.profile?.full_name || 'Peserta',
+          nis: participant.student?.nis || '-',
+          exam_title: exam.title,
+          class_name: exam.class?.name || 'Kelas'
+        },
+        participant.student?.profile?.full_name
+      );
 
-        if (next >= MAX_STRIKES) {
-          handleAutoForceSubmit(next);
-        } else {
-          setTabSwitchWarningOpen(true);
+      if (next >= MAX_STRIKES) {
+        handleAutoForceSubmit(next, note);
+      } else {
+        setTabSwitchWarningOpen(true);
+      }
+      return next;
+    });
+  };
+
+  // 2. Trigger Multi-Screen / Split Screen Breach
+  const triggerMultiScreenViolation = (reason: string) => {
+    if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+    const now = Date.now();
+    if (now - lastViolationTimeRef.current < 2000) return;
+    lastViolationTimeRef.current = now;
+
+    setLastViolationReason(reason);
+    setIsScreenShielded(true);
+
+    setViolationCount((prev) => {
+      const next = prev + 1;
+      db.logEvent(
+        exam.id,
+        participant.id,
+        'MULTI_SCREEN_SPLIT',
+        { 
+          count: next, 
+          max: MAX_STRIKES, 
+          time: new Date().toLocaleTimeString('id-ID'),
+          note: `${reason} (${next}x)`,
+          student_name: participant.student?.profile?.full_name || 'Peserta',
+          nis: participant.student?.nis || '-',
+          exam_title: exam.title,
+          class_name: exam.class?.name || 'Kelas'
+        },
+        participant.student?.profile?.full_name
+      );
+
+      if (next >= MAX_STRIKES) {
+        handleAutoForceSubmit(next, reason);
+      } else {
+        setMultiScreenWarningOpen(true);
+      }
+      return next;
+    });
+  };
+
+  // 3. Trigger Voice AI & Speech Breach
+  const triggerVoiceAiViolation = (reason: string, transcriptText?: string) => {
+    if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+    const now = Date.now();
+    if (now - lastViolationTimeRef.current < 2500) return;
+    lastViolationTimeRef.current = now;
+
+    setDetectedVoiceText(transcriptText || reason);
+    setLastViolationReason(`Voice AI: ${transcriptText || reason}`);
+
+    setViolationCount((prev) => {
+      const next = prev + 1;
+      db.logEvent(
+        exam.id,
+        participant.id,
+        'VOICE_AI_DETECTED',
+        { 
+          count: next, 
+          max: MAX_STRIKES, 
+          time: new Date().toLocaleTimeString('id-ID'),
+          note: `${reason} (${next}x)`,
+          transcript: transcriptText || reason,
+          student_name: participant.student?.profile?.full_name || 'Peserta',
+          nis: participant.student?.nis || '-',
+          exam_title: exam.title,
+          class_name: exam.class?.name || 'Kelas'
+        },
+        participant.student?.profile?.full_name
+      );
+
+      if (next >= MAX_STRIKES) {
+        handleAutoForceSubmit(next, reason);
+      } else {
+        setVoiceAiWarningOpen(true);
+      }
+      return next;
+    });
+  };
+
+  // Start Voice AI & Speech Recognition Protection
+  const startVoiceAiProtection = async () => {
+    try {
+      // 1. Microphone Hardware Stream & AudioContext
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: false,
+              autoGainControl: true
+            } 
+          });
+          mediaStreamRef.current = stream;
+          setIsMicActive(true);
+
+          const audioTrack = stream.getAudioTracks()[0];
+          if (audioTrack) {
+            // Trigger if external app takes exclusive audio focus
+            audioTrack.onmute = () => {
+              triggerVoiceAiViolation('Asisten suara eksternal (Voice AI) mengambil alih mikrofon');
+            };
+            audioTrack.onended = () => {
+              setIsMicActive(false);
+            };
+          }
+
+          // Monitor AudioContext interruptions
+          try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContextClass) {
+              const ctx = new AudioContextClass();
+              audioContextRef.current = ctx;
+              const source = ctx.createMediaStreamSource(stream);
+              const analyser = ctx.createAnalyser();
+              analyser.fftSize = 256;
+              source.connect(analyser);
+
+              ctx.onstatechange = () => {
+                if (ctx.state === 'suspended' || (ctx.state as any) === 'interrupted') {
+                  if (hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
+                    triggerVoiceAiViolation('Asisten suara / aplikasi eksternal menginterupsi audio');
+                  }
+                }
+              };
+            }
+          } catch {}
+        } catch (err) {
+          console.warn('Microphone permission skipped or blocked:', err);
         }
-        return next;
-      });
-    };
+      }
 
-    // 1. Tab switch & visibility change (Alt+Tab, switching browser tabs)
+      // 2. Web Speech API (Continuous Speech & Voice Assistant Query Detection)
+      const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognitionClass) {
+        const recognizer = new SpeechRecognitionClass();
+        recognizer.continuous = true;
+        recognizer.interimResults = false;
+        recognizer.lang = 'id-ID';
+
+        recognizer.onresult = (event: any) => {
+          if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              transcript += event.results[i][0].transcript;
+            }
+          }
+          transcript = transcript.trim();
+          if (transcript.length > 2) {
+            triggerVoiceAiViolation(`Terdeteksi perintah suara / percakapan: "${transcript}"`, transcript);
+          }
+        };
+
+        recognizer.onerror = (e: any) => {
+          if (e.error !== 'not-allowed' && hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
+            setTimeout(() => {
+              try { recognizer.start(); } catch {}
+            }, 1000);
+          }
+        };
+
+        recognizer.onend = () => {
+          if (hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
+            try { recognizer.start(); } catch {}
+          }
+        };
+
+        try {
+          recognizer.start();
+          speechRecognitionRef.current = recognizer;
+        } catch {}
+      }
+    } catch (e) {
+      console.warn('Voice AI protection initialization error:', e);
+    }
+  };
+
+  // Screen Integrity & Multi-Screen Checker
+  const checkScreenIntegrity = () => {
+    if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+
+    // 1. Android Split Screen & Floating Pop-up Window detection
+    const activeTag = (document.activeElement as HTMLElement)?.tagName;
+    const isTyping = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+
+    const isMobileOrTablet = window.innerWidth <= 1024 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobileOrTablet && !isTyping && window.screen.availHeight > 500) {
+      const heightRatio = window.innerHeight / window.screen.availHeight;
+      const isPortrait = window.screen.availHeight >= window.screen.availWidth;
+      // When screen is split into half (top/bottom)
+      if (heightRatio < 0.68 || (isPortrait && window.innerHeight < 420)) {
+        triggerMultiScreenViolation('Mode Layar Belah (Split Screen) atau Floating Pop-up terdeteksi');
+        return;
+      }
+    }
+
+    // 2. Desktop Multi-Monitor / Extended Display detection
+    if ((window.screen as any)?.isExtended) {
+      triggerMultiScreenViolation('Terdeteksi layar ganda / monitor eksternal aktif');
+      return;
+    }
+
+    // 3. Fullscreen check
+    if (document.fullscreenElement) {
+      setIsFullscreenActive(true);
+    }
+  };
+
+  const setupAntiCheatingListeners = () => {
+    // 1. Visibility change (Switching tab, minimizing window)
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        registerBreach();
+        wasBlurredRef.current = true;
+        setIsScreenShielded(true); // IMMEDIATELY SHIELD QUESTIONS SO CANNOT READ BEHIND POPUP
       } else {
-        handleReturnFromBreach();
+        if (wasBlurredRef.current) {
+          wasBlurredRef.current = false;
+          triggerTabSwitchViolation('Membuka tab baru / beralih aplikasi');
+        }
       }
     };
 
-    // 2. Window blur & focus (Opening split screen, opening another app, clicking outside browser)
+    // 2. Window blur & focus (Opening floating window, split screen, clicking outside browser)
     const handleWindowBlur = () => {
-      registerBreach();
+      wasBlurredRef.current = true;
+      setIsScreenShielded(true); // IMMEDIATELY SHIELD QUESTIONS!
     };
 
     const handleWindowFocus = () => {
-      handleReturnFromBreach();
+      if (wasBlurredRef.current) {
+        wasBlurredRef.current = false;
+        triggerTabSwitchViolation('Kehilangan fokus layar (Membuka aplikasi lain)');
+      }
     };
 
     // 3. Fullscreen monitor
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
-        setFullscreenWarningOpen(true);
-        db.logEvent(
-          exam.id,
-          participant.id,
-          'FULLSCREEN_EXIT',
-          { time: new Date().toLocaleTimeString('id-ID') },
-          participant.student?.profile?.full_name
-        );
+      if (document.fullscreenElement) {
+        setIsFullscreenActive(true);
+        setFullscreenWarningOpen(false);
+      } else {
+        setIsFullscreenActive(false);
+        if (hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
+          setFullscreenWarningOpen(true);
+          setIsScreenShielded(true);
+          db.logEvent(
+            exam.id,
+            participant.id,
+            'FULLSCREEN_EXIT',
+            { time: new Date().toLocaleTimeString('id-ID') },
+            participant.student?.profile?.full_name
+          );
+        }
       }
     };
 
@@ -334,7 +619,12 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
       );
     };
 
-    // 5. Prevent shortcut keys (DevTools, Inspect, Copy-Paste, Save, Print, Refresh)
+    // 5. Window Resize listener for Split Screen
+    const handleResize = () => {
+      checkScreenIntegrity();
+    };
+
+    // 6. Prevent shortcut keys (DevTools, Inspect, Copy-Paste, Save, Print, Refresh)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (examResultRef.current) return;
 
@@ -378,7 +668,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
       }
     };
 
-    // 6. Right-click context menu prevention
+    // 7. Right-click context menu prevention
     const handleContextMenu = (e: MouseEvent) => {
       if (!examResultRef.current) {
         e.preventDefault();
@@ -386,7 +676,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
       }
     };
 
-    // 7. Prevent accidental tab close or page reload
+    // 8. Prevent accidental tab close or page reload
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasStartedRef.current && !examResultRef.current && !isSubmittingRef.current) {
         e.preventDefault();
@@ -399,30 +689,42 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    window.addEventListener('resize', handleResize);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('contextmenu', handleContextMenu);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Enter Fullscreen on exam start
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {
-        // Browser requires direct user interaction trigger
-      });
-    }
+    // Run continuous screen integrity check every 1.5 seconds
+    screenCheckTimerRef.current = setInterval(checkScreenIntegrity, 1500);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('focus', handleWindowFocus);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (screenCheckTimerRef.current) clearInterval(screenCheckTimerRef.current);
     };
+  };
+
+  // Fullscreen Gateway activation handler
+  const handleEnterExamFullscreen = async () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch {}
+    setHasEnteredFullscreen(true);
+    setIsFullscreenActive(true);
+    setIsScreenShielded(false);
+    startVoiceAiProtection();
   };
 
   const currentQ = questions[currentIndex];
@@ -661,6 +963,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   return (
     <div 
       className="min-h-screen bg-slate-100 flex flex-col cbt-unselectable font-sans select-none"
+      translate="no"
       onContextMenu={(e) => e.preventDefault()}
       onCopy={(e) => e.preventDefault()}
       onCut={(e) => e.preventDefault()}
@@ -703,6 +1006,16 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
           {/* Right Controls: Anti-cheat badge, Auto-save badge & Question count */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Voice AI Protection Active Badge */}
+            <div className={`hidden sm:flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-bold border transition ${
+              isMicActive 
+                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/80' 
+                : 'bg-slate-800 text-slate-400 border-slate-700'
+            }`}>
+              <Mic className={`w-3.5 h-3.5 ${isMicActive ? 'text-emerald-400 animate-pulse' : 'text-slate-400'}`} />
+              <span className="hidden lg:inline">{isMicActive ? 'Voice AI Guard: Aktif' : 'Voice Guard: Standby'}</span>
+            </div>
+
             {/* Anti-Cheat Realtime Security Badge */}
             <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition ${
               violationCount === 0
@@ -1152,6 +1465,241 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
               className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-600/25 transition active:scale-[0.99] min-h-[46px]"
             >
               Saya Mengerti & Lanjutkan Ujian
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 1. Compulsory Fullscreen & Anti-Cheat Security Gateway */}
+      {!hasEnteredFullscreen && !examResult && !isForceSubmitted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 select-none animate-in fade-in overflow-y-auto">
+          <div className="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl space-y-5 sm:space-y-6 my-auto">
+            <div className="w-16 h-16 rounded-3xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center mx-auto text-brand-400 shadow-lg shadow-brand-500/20">
+              <ShieldAlert className="w-8 h-8 animate-pulse" />
+            </div>
+
+            <div>
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                SISTEM INTEGRITAS MITRA CBT
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-white mt-2.5 tracking-tight">
+                Mode Ujian Aman Aktif
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">
+                Untuk menjamin kejujuran asesmen, sistem CBT mengaktifkan protokol pengawasan ketat:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5 text-left">
+              <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/70 flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-sky-500/20 text-sky-400 shrink-0">
+                  <Maximize2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-200">Mode Layar Penuh Wajib</p>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Dilarang keluar fullscreen, berpindah aplikasi, atau membuka tab browser lain.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/70 flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 shrink-0">
+                  <Split className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-200">Anti Split-Screen & Floating Window</p>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Dilarang membagi layar atau membuka jendela pop-up mengambang.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/70 flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+                  <Mic className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-200">Sensor Suara & Anti Voice AI</p>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Mikrofon mendeteksi suara. Dilarang berbicara atau menggunakan Google Assistant, Ella, Gemini, atau Siri.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleEnterExamFullscreen}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-600 via-sky-600 to-brand-500 hover:from-brand-500 hover:to-sky-500 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-brand-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2"
+            >
+              <Maximize2 className="w-5 h-5" />
+              Masuk Mode Layar Penuh & Mulai Ujian
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Instant Privacy Screen Shield when window is blurred or floating window opened */}
+      {isScreenShielded && !tabSwitchWarningOpen && !multiScreenWarningOpen && !voiceAiWarningOpen && hasEnteredFullscreen && (
+        <div className="fixed inset-0 z-40 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none backdrop-blur-xl animate-in fade-in">
+          <div className="w-16 h-16 rounded-3xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-4 animate-pulse">
+            <EyeOff className="w-8 h-8" />
+          </div>
+          <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-rose-500/20 text-rose-300 border border-rose-500/40 mb-2">
+            LAYAR TERLINDUNGI
+          </span>
+          <h2 className="text-lg sm:text-xl font-black text-white mb-2">
+            Fokus Layar Ujian Terputus
+          </h2>
+          <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+            Terdeteksi aplikasi lain, jendela melayang (floating window), atau kehilangan fokus layar. Seluruh butir soal disembunyikan demi integritas ujian.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setIsScreenShielded(false);
+              triggerTabSwitchViolation('Membuka aplikasi lain atau floating window');
+            }}
+            className="px-6 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-rose-600/25 active:scale-95 transition"
+          >
+            Kembali ke Ujian Penuh
+          </button>
+        </div>
+      )}
+
+      {/* 3. Multi Screen / Split Screen Violation Modal */}
+      {multiScreenWarningOpen && !isForceSubmitted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-3.5 sm:p-4 animate-in fade-in overflow-y-auto">
+          <div className="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl border-2 border-purple-500 p-5 sm:p-7 shadow-2xl text-center space-y-4 sm:space-y-5 my-auto max-h-[92vh] overflow-y-auto">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-purple-100 text-purple-600 flex items-center justify-center mx-auto shadow-lg shadow-purple-500/20">
+              <Split className="w-7 h-7 sm:w-8 sm:h-8 animate-bounce" />
+            </div>
+
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200">
+                📱 MULTI-SCREEN / SPLIT TERDETEKSI
+              </span>
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-2 tracking-tight">
+                Dilarang Menggunakan Layar Belah!
+              </h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Anda terdeteksi menggunakan split-screen, jendela mengambang (floating window), atau layar ganda. Ujian WAJIB dikerjakan dalam 1 layar penuh.
+              </p>
+            </div>
+
+            {/* Strike Indicators */}
+            <div className="p-3 sm:p-4 rounded-2xl bg-purple-50/80 border border-purple-200 space-y-2">
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {[1, 2, 3].map((strike) => (
+                  <div key={strike} className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-black text-xs transition ${
+                        strike <= violationCount
+                          ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-2 ring-purple-300'
+                          : 'bg-white text-slate-400 border border-slate-300'
+                      }`}
+                    >
+                      {strike}
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-500">
+                      Strike {strike}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] font-extrabold text-purple-800 pt-1">
+                Peringatan {violationCount} dari {MAX_STRIKES} kali batas toleransi!
+              </p>
+              <p className="text-[10px] text-purple-600 font-medium leading-relaxed">
+                Sisa kesempatan: <strong>{Math.max(0, MAX_STRIKES - violationCount)} kali</strong>. Jika terdeteksi lagi, ujian akan <strong>OTOMATIS DIKUNCI PERMANEN</strong>!
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setMultiScreenWarningOpen(false);
+                setIsScreenShielded(false);
+                if (document.documentElement.requestFullscreen) {
+                  document.documentElement.requestFullscreen().catch(() => {});
+                }
+              }}
+              className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-600/25 transition active:scale-[0.99] min-h-[46px]"
+            >
+              Tutup Layar Ganda & Lanjutkan Layar Penuh
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Voice AI / Speech Violation Modal */}
+      {voiceAiWarningOpen && !isForceSubmitted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-3.5 sm:p-4 animate-in fade-in overflow-y-auto">
+          <div className="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl border-2 border-red-500 p-5 sm:p-7 shadow-2xl text-center space-y-4 sm:space-y-5 my-auto max-h-[92vh] overflow-y-auto">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-lg shadow-red-500/20">
+              <Mic className="w-7 h-7 sm:w-8 sm:h-8 animate-bounce" />
+            </div>
+
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">
+                🎙️ PERCAKAPAN / VOICE AI TERDETEKSI
+              </span>
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-2 tracking-tight">
+                Terdeteksi Suara atau Perintah Asisten AI!
+              </h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Sistem mendeteksi aktivitas suara atau interaksi asisten suara (Google Assistant, Ella, Gemini, Siri). Seluruh aktivitas ujian wajib hening tanpa suara.
+              </p>
+            </div>
+
+            {detectedVoiceText && (
+              <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 text-left">
+                <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Suara / Teks Terdeteksi:</p>
+                <p className="text-xs font-mono text-slate-800 bg-white p-2 rounded border border-slate-200 break-words italic">
+                  "{detectedVoiceText}"
+                </p>
+              </div>
+            )}
+
+            {/* Strike Indicators */}
+            <div className="p-3 sm:p-4 rounded-2xl bg-red-50/80 border border-red-200 space-y-2">
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {[1, 2, 3].map((strike) => (
+                  <div key={strike} className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-black text-xs transition ${
+                        strike <= violationCount
+                          ? 'bg-red-600 text-white shadow-md shadow-red-600/30 ring-2 ring-red-300'
+                          : 'bg-white text-slate-400 border border-slate-300'
+                      }`}
+                    >
+                      {strike}
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-500">
+                      Strike {strike}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] font-extrabold text-red-800 pt-1">
+                Peringatan {violationCount} dari {MAX_STRIKES} kali batas toleransi!
+              </p>
+              <p className="text-[10px] text-red-600 font-medium leading-relaxed">
+                Sisa kesempatan: <strong>{Math.max(0, MAX_STRIKES - violationCount)} kali</strong>. Jika berbicara atau menggunakan asisten suara lagi, ujian akan <strong>DIKUNCI PERMANEN</strong>!
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setVoiceAiWarningOpen(false);
+                setIsScreenShielded(false);
+                if (document.documentElement.requestFullscreen) {
+                  document.documentElement.requestFullscreen().catch(() => {});
+                }
+              }}
+              className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-red-600/25 transition active:scale-[0.99] min-h-[46px]"
+            >
+              Saya Mengerti & Lanjutkan (Mode Hening)
             </button>
           </div>
         </div>

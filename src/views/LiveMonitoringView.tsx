@@ -408,22 +408,55 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
 
                         {/* Activity & Integrity Indicator */}
                         <td className="p-3.5 text-center">
-                          {isWarning ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-700 border border-rose-200 animate-pulse">
-                              <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-                              🚨 Pelanggaran Tab ({p.tab_switch_count || cheatCount}x)
-                            </span>
-                          ) : isAttention ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                              ⚠️ Buka Tab ({p.tab_switch_count || cheatCount}x)
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              🟢 Normal
-                            </span>
-                          )}
+                          {(() => {
+                            const latestViolation = events.find(
+                              e => e.participant_id === p.id && 
+                              (e.event_type === 'VOICE_AI_DETECTED' || e.event_type === 'MULTI_SCREEN_SPLIT' || e.event_type === 'TAB_SWITCH' || e.event_type === 'FULLSCREEN_EXIT')
+                            );
+
+                            if (latestViolation?.event_type === 'VOICE_AI_DETECTED') {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-red-100 text-red-900 border border-red-300 animate-pulse">
+                                  <ShieldAlert className="w-3.5 h-3.5 text-red-600" />
+                                  🎙️ Voice AI ({cheatCount}x)
+                                </span>
+                              );
+                            }
+
+                            if (latestViolation?.event_type === 'MULTI_SCREEN_SPLIT') {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-purple-100 text-purple-900 border border-purple-300 animate-pulse">
+                                  <ShieldAlert className="w-3.5 h-3.5 text-purple-600" />
+                                  📱 Multi-Screen ({cheatCount}x)
+                                </span>
+                              );
+                            }
+
+                            if (isWarning) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-700 border border-rose-200 animate-pulse">
+                                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                                  🚨 Pelanggaran Tab ({p.tab_switch_count || cheatCount}x)
+                                </span>
+                              );
+                            }
+
+                            if (isAttention) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                  ⚠️ Buka Tab ({p.tab_switch_count || cheatCount}x)
+                                </span>
+                              );
+                            }
+
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                🟢 Normal
+                              </span>
+                            );
+                          })()}
                         </td>
 
                         {/* Score */}
@@ -478,8 +511,19 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
             ) : (
               events.map((ev) => {
                 let badgeColor = 'bg-slate-100 text-slate-700';
-                if (ev.event_type === 'TAB_SWITCH' || ev.event_type === 'FULLSCREEN_EXIT') {
+                let eventLabel = ev.event_type.replace('_', ' ');
+                if (ev.event_type === 'TAB_SWITCH') {
                   badgeColor = 'bg-rose-100 text-rose-800 border border-rose-200';
+                  eventLabel = '🚨 BUKA TAB LAIN';
+                } else if (ev.event_type === 'MULTI_SCREEN_SPLIT') {
+                  badgeColor = 'bg-purple-100 text-purple-800 border border-purple-200';
+                  eventLabel = '📱 MULTI-SCREEN / SPLIT';
+                } else if (ev.event_type === 'VOICE_AI_DETECTED') {
+                  badgeColor = 'bg-red-100 text-red-900 border border-red-300 font-extrabold';
+                  eventLabel = '🎙️ SUARA / VOICE AI';
+                } else if (ev.event_type === 'FULLSCREEN_EXIT') {
+                  badgeColor = 'bg-amber-100 text-amber-800 border border-amber-200';
+                  eventLabel = '⚠️ KELUAR FULLSCREEN';
                 } else if (ev.event_type === 'START_EXAM') {
                   badgeColor = 'bg-brand-100 text-brand-800';
                 } else if (ev.event_type === 'SUBMIT_EXAM') {
@@ -499,9 +543,9 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
 
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${badgeColor}`}>
-                        {ev.event_type === 'TAB_SWITCH' ? '🚨 BUKA TAB LAIN' : ev.event_type.replace('_', ' ')}
+                        {eventLabel}
                       </span>
-                      {ev.event_type === 'TAB_SWITCH' && ev.details?.count && (
+                      {ev.details?.count && (
                         <span className="text-[9px] font-bold text-rose-700 bg-rose-50 px-1 rounded border border-rose-200">
                           Ke-{ev.details.count} (Maks {ev.details.max || 3}x)
                         </span>
@@ -511,6 +555,11 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
                     {(ev.details?.note || ev.details?.reason) && (
                       <p className="text-[10px] text-slate-600 font-medium line-clamp-2">
                         {ev.details?.note || ev.details?.reason}
+                      </p>
+                    )}
+                    {ev.details?.transcript && (
+                      <p className="text-[10px] text-red-700 bg-red-50 p-1.5 rounded font-mono border border-red-200 break-words italic">
+                        🎙️ "{ev.details.transcript}"
                       </p>
                     )}
                   </div>
