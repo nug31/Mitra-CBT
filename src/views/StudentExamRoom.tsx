@@ -214,7 +214,12 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           { 
             count: next, 
             max: MAX_STRIKES, 
-            time: new Date().toLocaleTimeString('id-ID') 
+            time: new Date().toLocaleTimeString('id-ID'),
+            note: `Membuka tab baru / beralih aplikasi (${next}x)`,
+            student_name: participant.student?.profile?.full_name || 'Peserta',
+            nis: participant.student?.nis || '-',
+            exam_title: exam.title,
+            class_name: exam.class?.name || 'Kelas'
           },
           participant.student?.profile?.full_name
         );

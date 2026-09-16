@@ -21,11 +21,14 @@ import {
   CheckCircle2,
   HelpCircle,
   BarChart2,
-  FileText
+  FileText,
+  Settings,
+  Layers
 } from 'lucide-react';
 import { QuestionEditorModal } from '../components/bank/QuestionEditorModal';
 import { ExcelImportModal } from '../components/bank/ExcelImportModal';
 import { WordImportModal } from '../components/bank/WordImportModal';
+import { EditBankModal } from '../components/bank/EditBankModal';
 import { ImageModal } from '../components/common/ImageModal';
 
 export const QuestionBankView: React.FC = () => {
@@ -45,6 +48,7 @@ export const QuestionBankView: React.FC = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isExcelOpen, setIsExcelOpen] = useState(false);
   const [isWordOpen, setIsWordOpen] = useState(false);
+  const [isEditBankOpen, setIsEditBankOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -77,6 +81,12 @@ export const QuestionBankView: React.FC = () => {
   const loadQuestions = async (bankId: string) => {
     const qList = await db.getQuestions(bankId);
     setQuestions(qList);
+  };
+
+  const handleSaveBank = async (updatedBank: QuestionBank) => {
+    await db.updateQuestionBank(updatedBank);
+    const updatedBanks = await db.getQuestionBanks();
+    setBanks(updatedBanks);
   };
 
   const handleSaveQuestion = async (data: any) => {
@@ -116,18 +126,25 @@ export const QuestionBankView: React.FC = () => {
 
   const selectedBank = banks.find(b => b.id === selectedBankId);
 
-  // Derive grade from bank title (e.g. "Kelas X", "XI", "XII" keywords)
-  const getBankGrade = (bank: QuestionBank): string => {
+  // Derive target grades from bank (target_grades array or title fallback)
+  const getBankGrades = (bank: QuestionBank): string[] => {
+    if (bank.target_grades && bank.target_grades.length > 0) {
+      return bank.target_grades;
+    }
     const t = (bank.title + ' ' + (bank.description || '')).toUpperCase();
-    if (t.includes(' XII') || t.includes('KELAS XII')) return 'XII';
-    if (t.includes(' XI') || t.includes('KELAS XI')) return 'XI';
-    if (t.includes(' X ') || t.includes('KELAS X') || t.includes('KELAS X\n')) return 'X';
-    return 'Semua';
+    const inferred: string[] = [];
+    if (t.includes(' XII') || t.includes('KELAS XII')) inferred.push('XII');
+    if (t.includes(' XI') || t.includes('KELAS XI')) inferred.push('XI');
+    if (t.includes(' X ') || t.includes('KELAS X') || t.includes('KELAS X\n')) inferred.push('X');
+    return inferred.length > 0 ? inferred : ['Semua'];
   };
 
   const filteredBanks = gradeFilter === 'all'
     ? banks
-    : banks.filter(b => getBankGrade(b) === gradeFilter);
+    : banks.filter(b => {
+        const grades = getBankGrades(b);
+        return grades.includes(gradeFilter) || grades.includes('Semua');
+      });
 
   // Filter questions
   const filteredQuestions = questions.filter(q => {
@@ -208,28 +225,34 @@ export const QuestionBankView: React.FC = () => {
         {/* Bank Selector Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {filteredBanks.map((b) => {
-            const grade = getBankGrade(b);
+            const grades = getBankGrades(b);
+            const isSelected = selectedBankId === b.id;
             return (
               <button
                 key={b.id}
                 onClick={() => setSelectedBankId(b.id)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-2 border ${
-                  selectedBankId === b.id
+                  isSelected
                     ? 'bg-slate-900 text-white border-slate-900 shadow-md'
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                {grade !== 'Semua' && (
-                  <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
-                    selectedBankId === b.id ? 'bg-white/20 text-white' : 'bg-brand-100 text-brand-700'
-                  }`}>
-                    Kelas {grade}
-                  </span>
-                )}
+                <div className="flex items-center gap-1">
+                  {grades.map(g => (
+                    <span
+                      key={g}
+                      className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-brand-100 text-brand-700'
+                      }`}
+                    >
+                      Kelas {g}
+                    </span>
+                  ))}
+                </div>
                 <span>{b.title}</span>
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                    selectedBankId === b.id
+                    isSelected
                       ? 'bg-white/20 text-white'
                       : 'bg-slate-100 text-slate-600'
                   }`}
@@ -243,6 +266,35 @@ export const QuestionBankView: React.FC = () => {
             <p className="text-xs text-slate-400 italic px-2">Tidak ada bank soal untuk kelas {gradeFilter}.</p>
           )}
         </div>
+
+        {/* Selected Bank Details & Edit Target Class Banner */}
+        {selectedBank && (
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-black text-slate-900">{selectedBank.title}</span>
+                {getBankGrades(selectedBank).map(g => (
+                  <span
+                    key={g}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-brand-50 text-brand-700 border border-brand-200"
+                  >
+                    Target Kelas {g}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-500">
+                {selectedBank.description || 'Materi bank soal kejuruan otomotif & konversi energi.'}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsEditBankOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 border border-slate-200 text-slate-700 text-xs font-bold transition shrink-0 self-start sm:self-auto"
+            >
+              <Settings className="w-3.5 h-3.5 text-slate-500" />
+              <span>Edit Info & Target Kelas</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -316,6 +368,12 @@ export const QuestionBankView: React.FC = () => {
                     {material && (
                       <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
                         {material.name}
+                      </span>
+                    )}
+                    {q.target_grades && q.target_grades.length > 0 && (
+                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                        <Layers className="w-3 h-3 text-indigo-500" />
+                        <span>Kelas {q.target_grades.join(', ')}</span>
                       </span>
                     )}
                   </div>
@@ -465,6 +523,15 @@ export const QuestionBankView: React.FC = () => {
         onClose={() => setIsWordOpen(false)}
         bankId={selectedBankId}
         onImportComplete={handleImportWordComplete}
+      />
+
+      {/* Edit Bank Modal */}
+      <EditBankModal
+        isOpen={isEditBankOpen}
+        onClose={() => setIsEditBankOpen(false)}
+        bank={selectedBank || null}
+        subjects={subjects}
+        onSave={handleSaveBank}
       />
 
       {/* Image Zoom Modal */}

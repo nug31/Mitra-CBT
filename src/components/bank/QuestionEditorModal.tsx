@@ -9,7 +9,8 @@ import {
   AlertCircle,
   Sparkles,
   Upload,
-  XCircle
+  XCircle,
+  Layers
 } from 'lucide-react';
 import { DIAGRAM_PROYEKSI_EROPA, DIAGRAM_SIKLUS_ENGINE, DIAGRAM_ETIKET } from '../../services/mockData';
 
@@ -37,6 +38,11 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
   );
   const [materialId, setMaterialId] = useState(
     initialQuestion?.material_id || (materials[0]?.id ?? '')
+  );
+  const [targetGrades, setTargetGrades] = useState<string[]>(
+    initialQuestion?.target_grades && initialQuestion.target_grades.length > 0
+      ? initialQuestion.target_grades
+      : ['X', 'XII']
   );
   const [content, setContent] = useState(initialQuestion?.content || '');
   const [imageUrl, setImageUrl] = useState(initialQuestion?.image_url || '');
@@ -75,6 +81,11 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
         setWeight(initialQuestion.weight ?? 2.0);
         setExplanation(initialQuestion.explanation || '');
         setCompetency(initialQuestion.competency || '');
+        setTargetGrades(
+          initialQuestion.target_grades && initialQuestion.target_grades.length > 0
+            ? initialQuestion.target_grades
+            : ['X', 'XII']
+        );
 
         let initialOpts = (initialQuestion.options && initialQuestion.options.length > 0)
           ? initialQuestion.options.map(o => ({ ...o }))
@@ -228,6 +239,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
         weight: Number(weight),
         explanation,
         competency,
+        target_grades: targetGrades,
         options
       });
       onClose();
@@ -316,6 +328,49 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                 <option value="sedang">🟡 Sedang (C3)</option>
                 <option value="sulit">🔴 Sulit / HOTS (C4 - C6)</option>
               </select>
+            </div>
+          </div>
+
+          {/* Target Grade Selector for Question */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-brand-600" />
+                <span>Peruntukan Tingkat Kelas Soal:</span>
+              </label>
+              <span className="text-[10px] font-bold text-brand-600">
+                {targetGrades.length > 0 ? targetGrades.map(g => `Kelas ${g}`).join(', ') : 'Semua Kelas'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {(['X', 'XI', 'XII'] as const).map(grade => {
+                const isSelected = targetGrades.includes(grade);
+                return (
+                  <button
+                    type="button"
+                    key={grade}
+                    onClick={() => {
+                      setTargetGrades(prev =>
+                        prev.includes(grade)
+                          ? prev.filter(g => g !== grade)
+                          : [...prev, grade].sort()
+                      );
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition border flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] ${
+                      isSelected ? 'bg-white/20 text-white' : 'border border-slate-300'
+                    }`}>
+                      {isSelected && '✓'}
+                    </div>
+                    <span>Kelas {grade}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

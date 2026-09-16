@@ -327,7 +327,25 @@ class DBService {
 
   // Question Banks
   async getQuestionBanks(): Promise<QuestionBank[]> {
-    const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+    let banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+    
+    // Ensure default target_grades if not yet populated in existing localStorage
+    let modified = false;
+    banks = banks.map(b => {
+      if (!b.target_grades || b.target_grades.length === 0) {
+        modified = true;
+        if (b.id === 'bank-02' || b.title.toLowerCase().includes('engine') || b.title.toLowerCase().includes('konversi')) {
+          return { ...b, target_grades: ['X', 'XII'] };
+        } else if (b.id === 'bank-01') {
+          return { ...b, target_grades: ['X'] };
+        }
+      }
+      return b;
+    });
+    if (modified) {
+      setStorage('question_banks', banks);
+    }
+
     const questions = await this.getQuestions();
     const subjects = await this.getSubjects();
 
@@ -349,6 +367,19 @@ class DBService {
     setStorage('question_banks', banks);
     this.logAudit('CREATE_QUESTION_BANK', 'question_bank', newBank.id, { title: newBank.title });
     return newBank;
+  }
+
+  async updateQuestionBank(bank: QuestionBank): Promise<QuestionBank> {
+    const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+    const idx = banks.findIndex(b => b.id === bank.id);
+    if (idx >= 0) {
+      banks[idx] = { ...banks[idx], ...bank };
+    } else {
+      banks.push(bank);
+    }
+    setStorage('question_banks', banks);
+    this.logAudit('UPDATE_QUESTION_BANK', 'question_bank', bank.id, { title: bank.title });
+    return banks[idx >= 0 ? idx : banks.length - 1];
   }
 
   // Questions
@@ -654,6 +685,20 @@ class DBService {
       setStorage('events', events);
     }
     return events.filter(e => e.exam_id === examId);
+  }
+
+  async getAllEvents(): Promise<ExamEvent[]> {
+    const serverEvents = await fetchFromSyncServer<ExamEvent[]>('events');
+    let events = getStorage<ExamEvent[]>('events', INITIAL_EVENTS);
+    if (serverEvents && serverEvents.length > 0) {
+      for (const se of serverEvents) {
+        if (!events.find(e => e.id === se.id)) {
+          events.push(se);
+        }
+      }
+      setStorage('events', events);
+    }
+    return events;
   }
 
   // Grading & Submitting Exam

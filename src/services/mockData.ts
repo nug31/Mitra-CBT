@@ -196,6 +196,7 @@ export const INITIAL_QUESTION_BANKS: QuestionBank[] = [
     subject_id: 'subj-01',
     title: 'Bank Soal Komprehensif Gambar Teknik Otomotif Kelas X',
     description: 'Kumpulan soal standar ISO untuk proyeksi, etiket, garis kerja, dan potongan mesin.',
+    target_grades: ['X'],
     created_at: '2024-08-01T08:00:00Z',
     question_count: 5
   },
@@ -205,6 +206,7 @@ export const INITIAL_QUESTION_BANKS: QuestionBank[] = [
     subject_id: 'subj-02',
     title: 'Bank Soal Motor Bakar & Dasar Konversi Energi Engine',
     description: 'Kumpulan butir soal termodinamika mesin, siklus motor 4-tak & 2-tak, dan sistem penunjang engine.',
+    target_grades: ['X', 'XII'],
     created_at: '2024-08-05T09:00:00Z',
     question_count: 5
   }

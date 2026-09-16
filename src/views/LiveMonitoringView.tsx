@@ -289,14 +289,14 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
                         {/* Activity & Integrity Indicator */}
                         <td className="p-3.5 text-center">
                           {isWarning ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-700 border border-rose-200">
-                              <ShieldAlert className="w-3.5 h-3.5" />
-                              🔴 Perlu Ditinjau ({cheatCount}x)
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-700 border border-rose-200 animate-pulse">
+                              <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                              🚨 Pelanggaran Tab ({p.tab_switch_count || cheatCount}x)
                             </span>
                           ) : isAttention ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                              <AlertTriangle className="w-3.5 h-3.5" />
-                              🟡 Perhatian ({cheatCount}x)
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                              ⚠️ Buka Tab ({p.tab_switch_count || cheatCount}x)
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">
@@ -377,15 +377,20 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${badgeColor}`}>
-                        {ev.event_type.replace('_', ' ')}
+                        {ev.event_type === 'TAB_SWITCH' ? '🚨 BUKA TAB LAIN' : ev.event_type.replace('_', ' ')}
                       </span>
+                      {ev.event_type === 'TAB_SWITCH' && ev.details?.count && (
+                        <span className="text-[9px] font-bold text-rose-700 bg-rose-50 px-1 rounded border border-rose-200">
+                          Ke-{ev.details.count} (Maks {ev.details.max || 3}x)
+                        </span>
+                      )}
                     </div>
 
-                    {ev.details?.reason && (
-                      <p className="text-[10px] text-slate-500 line-clamp-2">
-                        {ev.details.reason}
+                    {(ev.details?.note || ev.details?.reason) && (
+                      <p className="text-[10px] text-slate-600 font-medium line-clamp-2">
+                        {ev.details?.note || ev.details?.reason}
                       </p>
                     )}
                   </div>

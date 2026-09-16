@@ -129,11 +129,30 @@ export const ExamModal: React.FC<ExamModalProps> = ({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Pick questions from banks matching the subject
+      // Pick questions from banks matching the subject and target grade
       const allQuestions = await db.getQuestions();
       const subjectBanks = (await db.getQuestionBanks()).filter(b => b.subject_id === subjectId);
-      const bankIds = subjectBanks.map(b => b.id);
+      const classes = await db.getClasses();
+      const currentClass = classes.find(c => c.id === classId);
+      const classGrade = currentClass?.grade; // 'X' | 'XI' | 'XII'
+
+      let candidateBanks = subjectBanks;
+      if (classGrade) {
+        const matchingBanks = subjectBanks.filter(b => !b.target_grades || b.target_grades.length === 0 || b.target_grades.includes(classGrade));
+        if (matchingBanks.length > 0) {
+          candidateBanks = matchingBanks;
+        }
+      }
+
+      const bankIds = candidateBanks.map(b => b.id);
       let candidateQuestions = allQuestions.filter(q => bankIds.includes(q.bank_id));
+
+      if (classGrade) {
+        const gradeQuestions = candidateQuestions.filter(q => !q.target_grades || q.target_grades.length === 0 || q.target_grades.includes(classGrade));
+        if (gradeQuestions.length > 0) {
+          candidateQuestions = gradeQuestions;
+        }
+      }
 
       if (candidateQuestions.length === 0) {
         candidateQuestions = allQuestions; // fallback to available questions

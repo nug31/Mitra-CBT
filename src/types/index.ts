@@ -66,6 +66,7 @@ export interface QuestionBank {
   subject_id: string;
   title: string;
   description?: string;
+  target_grades?: string[]; // e.g. ['X', 'XII']
   created_at: string;
   subject?: Subject;
   question_count?: number;
@@ -94,6 +95,7 @@ export interface Question {
   id: string;
   bank_id: string;
   material_id?: string;
+  target_grades?: string[]; // e.g. ['X', 'XII']
   question_type: QuestionType;
   content: string;
   image_url?: string;
