@@ -86,24 +86,37 @@ export function parseQuestionsFromHtmlAndText(
   html: string,
   rawText: string
 ): ParsedWordQuestion[] {
-  // Split HTML into paragraph-like blocks
-  const rawBlocks = html
-    .split(/<\/p>|<\/div>|<\/tr>/i)
-    .map(b => b.trim())
-    .filter(b => b.length > 0);
+  // Extract lines from HTML preserving embedded base64 images
+  const extractLinesFromHtml = (rawHtml: string) => {
+    const rawBlocks = rawHtml
+      .split(/<\/p>|<\/div>|<\/tr>/i)
+      .map(b => b.trim())
+      .filter(b => b.length > 0);
 
-  // If HTML blocks are too few or empty, fallback to raw text lines
-  const lines: { text: string; image?: string }[] = [];
+    const parsedLines: { text: string; image?: string }[] = [];
 
-  if (rawBlocks.length > 3) {
     for (const block of rawBlocks) {
       const { text, firstImage } = stripHtmlKeepImages(block);
-      if (text || firstImage) {
-        lines.push({ text, image: firstImage });
+      if (!text && !firstImage) continue;
+
+      // Crucial fix: mammoth can group multiple lines (separated by <br> or inner elements) into a single paragraph block.
+      // stripHtmlKeepImages converts <br> to \n, so we split by newline to get individual lines!
+      const subLines = text ? text.split(/\r?\n/).map(l => l.trim()).filter(Boolean) : [];
+      if (subLines.length === 0 && firstImage) {
+        parsedLines.push({ text: '', image: firstImage });
+      } else {
+        subLines.forEach((sl, sIdx) => {
+          parsedLines.push({ text: sl, image: sIdx === 0 ? firstImage : undefined });
+        });
       }
     }
-  } else {
-    // Fallback to text lines
+    return parsedLines;
+  };
+
+  let lines = extractLinesFromHtml(html);
+
+  // If HTML blocks were too few or empty, fallback to raw text lines
+  if (lines.length === 0 && rawText) {
     const textLines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     for (const tl of textLines) {
       lines.push({ text: tl });
@@ -111,187 +124,205 @@ export function parseQuestionsFromHtmlAndText(
   }
 
   // Regex patterns
-  const questionStartRegex = /^(?:(?:soal|no\.?)\s*)?(\d+)[\.\)]\s*(.*)$/i;
-  const optionStartRegex = /^([A-Ea-e])[\.\)]\s*(.*)$/;
+  const questionStartRegex = /^(?:(?:soal|no\.?)\s*)?(\d+)[\.\)\:\-]\s*(.*)$/i;
+  const optionStartRegex = /^([A-Ea-e])[\.\)\:\-]\s*(.*)$/;
   const optionParenRegex = /^\(([A-Ea-e])\)\s*(.*)$/;
   const optionBracketRegex = /^\[([A-Ea-e])\]\s*(.*)$/;
-  const keyRegex = /^(?:kunci(?:\s+jawaban)?|jawaban|ans(?:wer)?|key)\s*[:=]\s*([A-Ea-e\s,]+)/i;
+  const keyRegex = /^(?:kunci(?:\s+jawaban)?|jawaban(?:\s+benar)?|ans(?:wer)?|key)\s*[:=]\s*(.*)$/i;
   const explanationRegex = /^(?:pembahasan|penjelasan|explanation|solusi)\s*[:=]\s*(.*)$/i;
   const weightRegex = /^(?:bobot|skor|nilai|poin|weight)\s*[:=]\s*([\d\.]+)/i;
   const difficultyRegex = /^(?:kesulitan|tingkat\s+kesulitan|level|difficulty)\s*[:=]\s*(mudah|sedang|sulit|easy|medium|hard)/i;
   const typeRegex = /^(?:jenis|tipe|type)\s*[:=]\s*(.*)$/i;
 
-  const rawQuestions: {
-    qNum: number;
-    contentLines: string[];
-    images: string[];
-    options: { label: string; text: string; image?: string }[];
-    key?: string;
-    explanation?: string;
-    weight?: number;
-    difficulty?: DifficultyLevel;
-    questionType?: QuestionType;
-  }[] = [];
+  const parseLinesToRawQuestions = (sourceLines: { text: string; image?: string }[]) => {
+    const rawQs: {
+      qNum: number;
+      contentLines: string[];
+      images: string[];
+      options: { label: string; text: string; image?: string }[];
+      key?: string;
+      explanation?: string;
+      weight?: number;
+      difficulty?: DifficultyLevel;
+      questionType?: QuestionType;
+    }[] = [];
 
-  let currentQ: (typeof rawQuestions)[0] | null = null;
-  let currentOpt: { label: string; text: string; image?: string } | null = null;
-  let questionCounter = 0;
+    let currentQ: (typeof rawQs)[0] | null = null;
+    let currentOpt: { label: string; text: string; image?: string } | null = null;
+    let questionCounter = 0;
 
-  for (let i = 0; i < lines.length; i++) {
-    const { text, image } = lines[i];
+    for (let i = 0; i < sourceLines.length; i++) {
+      const { text, image } = sourceLines[i];
 
-    // Check if line is Question Start: e.g. "1. ..." or "Soal 1: ..."
-    const qMatch = text.match(questionStartRegex);
-    // Ignore if looks like "1.5 kg" or small number inside sentence
-    const isLikelyQuestion = qMatch && (
-      qMatch[2].length > 3 || 
-      image !== undefined ||
-      (i + 1 < lines.length && (
-        lines[i + 1].text.match(optionStartRegex) ||
-        lines[i + 1].text.match(optionParenRegex) ||
-        lines[i + 1].text.match(optionBracketRegex)
-      ))
-    );
+      // Check if line is Question Start: e.g. "1. ..." or "Soal 1: ..."
+      const qMatch = text.match(questionStartRegex);
+      // Ignore if looks like "1.5 kg" or small number inside sentence
+      const isLikelyQuestion = qMatch && (
+        qMatch[2].length > 3 || 
+        image !== undefined ||
+        (i + 1 < sourceLines.length && (
+          sourceLines[i + 1].text.match(optionStartRegex) ||
+          sourceLines[i + 1].text.match(optionParenRegex) ||
+          sourceLines[i + 1].text.match(optionBracketRegex)
+        ))
+      );
 
-    if (isLikelyQuestion) {
-      questionCounter++;
-      const num = parseInt(qMatch![1], 10) || questionCounter;
-      const initialContent = qMatch![2].trim();
+      if (isLikelyQuestion) {
+        questionCounter++;
+        const num = parseInt(qMatch![1], 10) || questionCounter;
+        const initialContent = qMatch![2].trim();
 
-      currentQ = {
-        qNum: num,
-        contentLines: initialContent ? [initialContent] : [],
-        images: image ? [image] : [],
-        options: [],
-      };
-      currentOpt = null;
-      rawQuestions.push(currentQ);
-      continue;
-    }
-
-    // If we have not encountered a question yet, skip headers/instructions
-    if (!currentQ) {
-      continue;
-    }
-
-    // Check if line is Key: e.g. "Kunci: C" or "Jawaban: B"
-    const keyMatch = text.match(keyRegex);
-    if (keyMatch) {
-      currentQ.key = keyMatch[1].trim().toUpperCase();
-      currentOpt = null;
-      continue;
-    }
-
-    // Check if line is Pembahasan: e.g. "Pembahasan: ..."
-    const expMatch = text.match(explanationRegex);
-    if (expMatch) {
-      currentQ.explanation = expMatch[1].trim();
-      currentOpt = null;
-      continue;
-    }
-
-    // Check if line is Weight: e.g. "Bobot: 2"
-    const wMatch = text.match(weightRegex);
-    if (wMatch) {
-      currentQ.weight = parseFloat(wMatch[1]) || 1;
-      continue;
-    }
-
-    // Check if line is Difficulty: e.g. "Kesulitan: Sedang"
-    const dMatch = text.match(difficultyRegex);
-    if (dMatch) {
-      const rawD = dMatch[1].toLowerCase();
-      if (rawD.includes('mudah') || rawD.includes('easy')) currentQ.difficulty = 'mudah';
-      else if (rawD.includes('sulit') || rawD.includes('hard')) currentQ.difficulty = 'sulit';
-      else currentQ.difficulty = 'sedang';
-      continue;
-    }
-
-    // Check if line is Question Type: e.g. "Jenis: Pilihan Ganda"
-    const tMatch = text.match(typeRegex);
-    if (tMatch) {
-      const rawT = tMatch[1].toLowerCase();
-      if (rawT.includes('benar') || rawT.includes('salah')) currentQ.questionType = 'benar_salah';
-      else if (rawT.includes('kompleks')) currentQ.questionType = 'pg_kompleks';
-      else if (rawT.includes('isian')) currentQ.questionType = 'isian_singkat';
-      else if (rawT.includes('jodoh')) currentQ.questionType = 'menjodohkan';
-      continue;
-    }
-
-    // Check if line is an Option: e.g. "A. ...", "(A) ...", "[A] ..."
-    const optMatch = text.match(optionStartRegex) || text.match(optionParenRegex) || text.match(optionBracketRegex);
-    if (optMatch) {
-      const label = optMatch[1].toUpperCase();
-      let optText = optMatch[2].trim();
-
-      // Check if option contains an inline key marker e.g. "(kunci)", "(benar)", "*", "[x]"
-      const hasInlineMarker = /\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/i.test(optText) || text.startsWith('*');
-      if (hasInlineMarker) {
-        optText = optText.replace(/\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/gi, '').trim();
-        if (!currentQ.key) {
-          currentQ.key = label;
-        }
+        currentQ = {
+          qNum: num,
+          contentLines: initialContent ? [initialContent] : [],
+          images: image ? [image] : [],
+          options: [],
+        };
+        currentOpt = null;
+        rawQs.push(currentQ);
+        continue;
       }
 
-      // Check if this line contains MULTIPLE inline options (e.g. "A. Opsi 1  B. Opsi 2")
-      const inlineSplit = optText.split(/\s+(?=[B-Eb-e][\.\)])/);
-      if (inlineSplit.length > 1) {
-        // First option
-        currentQ.options.push({
-          label,
-          text: inlineSplit[0].trim(),
-          image: image
-        });
+      // If we have not encountered a question yet, skip headers/instructions
+      if (!currentQ) {
+        continue;
+      }
 
-        // Remaining inline options
-        for (let s = 1; s < inlineSplit.length; s++) {
-          const part = inlineSplit[s].trim();
-          const subMatch = part.match(/^([B-Eb-e])[\.\)]\s*(.*)$/);
-          if (subMatch) {
-            let subText = subMatch[2].trim();
-            const subHasMarker = /\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/i.test(subText);
-            if (subHasMarker) {
-              subText = subText.replace(/\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/gi, '').trim();
-              if (!currentQ.key) {
-                currentQ.key = subMatch[1].toUpperCase();
-              }
-            }
-            currentQ.options.push({
-              label: subMatch[1].toUpperCase(),
-              text: subText
-            });
-          }
-        }
+      // Check if line is Key: e.g. "Kunci: C" or "Jawaban: B"
+      const keyMatch = text.match(keyRegex);
+      if (keyMatch) {
+        currentQ.key = keyMatch[1].trim().toUpperCase();
         currentOpt = null;
         continue;
       }
 
-      currentOpt = {
-        label,
-        text: optText,
-        image: image
-      };
-      currentQ.options.push(currentOpt);
-      continue;
-    }
+      // Check if line is Pembahasan: e.g. "Pembahasan: ..."
+      const expMatch = text.match(explanationRegex);
+      if (expMatch) {
+        currentQ.explanation = expMatch[1].trim();
+        currentOpt = null;
+        continue;
+      }
 
-    // If we're inside an option, append text or image to current option
-    if (currentOpt) {
+      // Check if line is Weight: e.g. "Bobot: 2"
+      const wMatch = text.match(weightRegex);
+      if (wMatch) {
+        currentQ.weight = parseFloat(wMatch[1]) || 1;
+        continue;
+      }
+
+      // Check if line is Difficulty: e.g. "Kesulitan: Sedang"
+      const dMatch = text.match(difficultyRegex);
+      if (dMatch) {
+        const rawD = dMatch[1].toLowerCase();
+        if (rawD.includes('mudah') || rawD.includes('easy')) currentQ.difficulty = 'mudah';
+        else if (rawD.includes('sulit') || rawD.includes('hard')) currentQ.difficulty = 'sulit';
+        else currentQ.difficulty = 'sedang';
+        continue;
+      }
+
+      // Check if line is Question Type: e.g. "Jenis: Pilihan Ganda"
+      const tMatch = text.match(typeRegex);
+      if (tMatch) {
+        const rawT = tMatch[1].toLowerCase();
+        if (rawT.includes('benar') || rawT.includes('salah')) currentQ.questionType = 'benar_salah';
+        else if (rawT.includes('kompleks')) currentQ.questionType = 'pg_kompleks';
+        else if (rawT.includes('isian')) currentQ.questionType = 'isian_singkat';
+        else if (rawT.includes('jodoh')) currentQ.questionType = 'menjodohkan';
+        continue;
+      }
+
+      // Check if line is an Option: e.g. "A. ...", "(A) ...", "[A] ..."
+      const optMatch = text.match(optionStartRegex) || text.match(optionParenRegex) || text.match(optionBracketRegex);
+      if (optMatch) {
+        const label = optMatch[1].toUpperCase();
+        let optText = optMatch[2].trim();
+
+        // Check if option contains an inline key marker e.g. "(kunci)", "(benar)", "*", "[x]"
+        const hasInlineMarker = /\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/i.test(optText) || text.startsWith('*');
+        if (hasInlineMarker) {
+          optText = optText.replace(/\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/gi, '').trim();
+          if (!currentQ.key) {
+            currentQ.key = label;
+          }
+        }
+
+        // Check if this line contains MULTIPLE inline options (e.g. "A. Opsi 1  B. Opsi 2")
+        const inlineSplit = optText.split(/\s+(?=[B-Eb-e][\.\)])/);
+        if (inlineSplit.length > 1) {
+          // First option
+          currentQ.options.push({
+            label,
+            text: inlineSplit[0].trim(),
+            image: image
+          });
+
+          // Remaining inline options
+          for (let s = 1; s < inlineSplit.length; s++) {
+            const part = inlineSplit[s].trim();
+            const subMatch = part.match(/^([B-Eb-e])[\.\)]\s*(.*)$/);
+            if (subMatch) {
+              let subText = subMatch[2].trim();
+              const subHasMarker = /\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/i.test(subText);
+              if (subHasMarker) {
+                subText = subText.replace(/\((?:kunci|benar|jawaban)\)|\[(?:x|v|benar|kunci)\]|\*/gi, '').trim();
+                if (!currentQ.key) {
+                  currentQ.key = subMatch[1].toUpperCase();
+                }
+              }
+              currentQ.options.push({
+                label: subMatch[1].toUpperCase(),
+                text: subText
+              });
+            }
+          }
+          currentOpt = null;
+          continue;
+        }
+
+        currentOpt = {
+          label,
+          text: optText,
+          image: image
+        };
+        currentQ.options.push(currentOpt);
+        continue;
+      }
+
+      // If we're inside an option, append text or image to current option
+      if (currentOpt) {
+        if (text) {
+          currentOpt.text += (currentOpt.text ? ' ' : '') + text;
+        }
+        if (image && !currentOpt.image) {
+          currentOpt.image = image;
+        }
+        continue;
+      }
+
+      // Otherwise, this belongs to Question Content (or embedded image)
       if (text) {
-        currentOpt.text += (currentOpt.text ? ' ' : '') + text;
+        currentQ.contentLines.push(text);
       }
-      if (image && !currentOpt.image) {
-        currentOpt.image = image;
+      if (image) {
+        currentQ.images.push(image);
       }
-      continue;
     }
 
-    // Otherwise, this belongs to Question Content (or embedded image)
-    if (text) {
-      currentQ.contentLines.push(text);
-    }
-    if (image) {
-      currentQ.images.push(image);
+    return rawQs;
+  };
+
+  let rawQuestions = parseLinesToRawQuestions(lines);
+
+  // If parsing HTML lines yielded 0 questions, attempt parsing raw text lines
+  if (rawQuestions.length === 0 && rawText) {
+    const rawTextLines = rawText
+      .split(/\r?\n/)
+      .map(l => ({ text: l.trim() }))
+      .filter(l => l.text.length > 0);
+    const fallbackQuestions = parseLinesToRawQuestions(rawTextLines);
+    if (fallbackQuestions.length > 0) {
+      rawQuestions = fallbackQuestions;
     }
   }
 
