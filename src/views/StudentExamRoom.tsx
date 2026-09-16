@@ -512,9 +512,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   // Post-submission Screen
   if (examResult) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
-        <div className="max-w-xl w-full bg-slate-800 rounded-3xl border border-slate-700 p-8 text-center shadow-2xl space-y-6 animate-in zoom-in-95">
-          <div className={`w-16 h-16 rounded-3xl flex items-center justify-center mx-auto border ${
+      <div className="min-h-screen min-h-[100dvh] bg-slate-900 text-white flex items-center justify-center p-3.5 sm:p-6 overflow-y-auto">
+        <div className="max-w-xl w-full bg-slate-800 rounded-2xl sm:rounded-3xl border border-slate-700 p-5 sm:p-8 text-center shadow-2xl space-y-5 sm:space-y-6 animate-in zoom-in-95 my-auto max-h-[94vh] overflow-y-auto">
+          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto border ${
             isForceSubmitted 
               ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
               : examResult.passed 
@@ -522,23 +522,23 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                 : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
           }`}>
             {isForceSubmitted ? (
-              <Lock className="w-8 h-8 text-rose-400" />
+              <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-rose-400" />
             ) : examResult.passed ? (
-              <Trophy className="w-8 h-8 text-amber-400" />
+              <Trophy className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400" />
             ) : (
-              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+              <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-400" />
             )}
           </div>
 
           <div>
-            <span className={`text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full ${
+            <span className={`text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest px-2.5 sm:px-3 py-1 rounded-full ${
               isForceSubmitted 
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' 
                 : 'bg-slate-700 text-slate-300'
             }`}>
               {isForceSubmitted ? '🛑 Ujian Dikunci Otomatis (Force Submitted)' : 'Ujian Berhasil Dikumpulkan'}
             </span>
-            <h2 className="text-2xl font-black text-white mt-3 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-white mt-2.5 sm:mt-3 tracking-tight">
               {exam.title}
             </h2>
             <p className="text-xs text-slate-400 mt-1">
@@ -547,7 +547,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
             {isForceSubmitted && (
               <div className="mt-3 p-3 rounded-2xl bg-rose-950/70 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-2.5 text-left">
                 <AlertOctagon className="w-5 h-5 text-rose-400 shrink-0" />
-                <p className="leading-relaxed">
+                <p className="leading-relaxed text-[11px] sm:text-xs">
                   Sistem mengunci dan mengumpulkan lembar ujian Anda karena terdeteksi berpindah tab / jendela lain sebanyak <strong>{MAX_STRIKES} kali</strong>.
                 </p>
               </div>
@@ -555,32 +555,32 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           </div>
 
           {exam.show_results_immediately ? (
-            <div className="p-6 bg-slate-900/80 rounded-2xl border border-slate-700 space-y-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="p-4 sm:p-6 bg-slate-900/80 rounded-2xl border border-slate-700 space-y-3.5 sm:space-y-4">
+              <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
                 Nilai Akhir Ujian Anda
               </p>
-              <div className="text-5xl font-black text-sky-400 font-mono">
+              <div className="text-4xl sm:text-5xl font-black text-sky-400 font-mono">
                 {examResult.total_score}
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center pt-3 border-t border-slate-800">
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Benar</p>
-                  <p className="text-base font-extrabold text-emerald-400">{examResult.correct_count}</p>
+                  <p className="text-sm sm:text-base font-extrabold text-emerald-400">{examResult.correct_count}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Salah</p>
-                  <p className="text-base font-extrabold text-rose-400">{examResult.wrong_count}</p>
+                  <p className="text-sm sm:text-base font-extrabold text-rose-400">{examResult.wrong_count}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase font-bold">KKM</p>
-                  <p className="text-base font-extrabold text-amber-400">{exam.kkm}</p>
+                  <p className="text-sm sm:text-base font-extrabold text-amber-400">{exam.kkm}</p>
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1 sm:pt-2">
                 <span
-                  className={`inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                  className={`inline-block px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider ${
                     examResult.passed
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                       : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
@@ -591,14 +591,14 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
               </div>
             </div>
           ) : (
-            <div className="p-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-xs text-slate-300 leading-relaxed">
+            <div className="p-4 sm:p-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-xs text-slate-300 leading-relaxed">
               Jawaban Anda telah tersimpan secara aman di server CBT SMK Mitra. Nilai dan hasil evaluasi akan diumumkan secara resmi oleh guru pengampu setelah batas waktu ujian selesai.
             </div>
           )}
 
           <button
             onClick={onExitExam}
-            className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs tracking-wide transition shadow-lg shadow-brand-600/30"
+            className="w-full py-3.5 sm:py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs sm:text-sm tracking-wide transition shadow-lg shadow-brand-600/30 min-h-[46px] active:scale-[0.99]"
           >
             Kembali ke Beranda Siswa
           </button>
@@ -617,29 +617,29 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
     >
       {/* 1. Exam Header (MITRA CBT Distraction-free) */}
       <header className="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
           {/* Brand & Exam Title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white text-xs sm:text-base shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white text-xs sm:text-base shrink-0 shadow-sm shadow-brand-500/30">
               M
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-bold text-xs sm:text-sm tracking-tight text-white truncate max-w-[120px] sm:max-w-[260px] block">
+                <span className="font-bold text-xs sm:text-sm tracking-tight text-white truncate max-w-[100px] sm:max-w-[260px] block">
                   {exam.title}
                 </span>
                 <span className="hidden sm:inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-brand-950 text-sky-400 border border-brand-800 uppercase shrink-0">
                   CBT SISWA
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[130px] sm:max-w-none">
+              <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[100px] sm:max-w-none">
                 {participant.student?.profile?.full_name}
               </p>
             </div>
           </div>
 
           {/* Center: Server-side countdown timer */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-2xl bg-slate-800 border border-slate-700 shadow-inner shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-slate-800 border border-slate-700 shadow-inner shrink-0">
             <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${remainingSeconds < 300 ? 'text-rose-400 animate-bounce' : 'text-amber-400'}`} />
             <span
               className={`font-mono font-black text-xs sm:text-sm tracking-wider ${
@@ -689,34 +689,35 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
             </div>
 
             {/* Progress Counter */}
-            <div className="px-3 py-1 rounded-xl bg-slate-800 text-xs font-extrabold text-slate-200 border border-slate-700">
+            <div className="px-2 sm:px-3 py-1 rounded-xl bg-slate-800 text-[11px] sm:text-xs font-extrabold text-slate-200 border border-slate-700">
               {currentIndex + 1} / {questions.length}
             </div>
 
             {/* Question Palette Toggle (Mobile/Tablet) */}
             <button
               onClick={() => setPaletteOpen(!paletteOpen)}
-              className="lg:hidden p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              className="lg:hidden p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95 flex items-center gap-1"
+              aria-label="Buka Daftar Nomor Soal"
             >
-              <Layers className="w-4 h-4" />
+              <Layers className="w-4 h-4 text-sky-400" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Examination Stage */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 items-start">
         {/* Left Column (3 Cols): Question Card & Options */}
-        <div className="lg:col-span-3 space-y-5">
+        <div className="lg:col-span-3 space-y-4 sm:space-y-5">
           {currentQ ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-6 lg:p-8 shadow-xs space-y-4 sm:space-y-6">
               {/* Question Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-xl bg-brand-600 text-white font-black text-sm">
+              <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100 flex-wrap gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="px-2.5 sm:px-3 py-1 rounded-xl bg-brand-600 text-white font-black text-xs sm:text-sm">
                     Soal No. {currentIndex + 1}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 uppercase">
+                  <span className="px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-700 uppercase">
                     {currentQ.question_type.replace('_', ' ')}
                   </span>
                 </div>
@@ -725,7 +726,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                   <button
                     type="button"
                     onClick={handleToggleReview}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition border touch-manipulation active:scale-95 ${
                       answersMap[currentQ.id]?.is_marked_review
                         ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -739,16 +740,16 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
               {/* Technical Diagram Image if available */}
               {currentQ.image_url && (
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center gap-2">
+                <div className="p-2 sm:p-4 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-200 flex flex-col items-center gap-2">
                   <img
                     src={currentQ.image_url}
                     alt="Diagram Soal"
-                    className="max-h-72 object-contain rounded-lg shadow-xs bg-white border border-slate-200"
+                    className="max-h-52 sm:max-h-72 w-full object-contain rounded-lg shadow-xs bg-white border border-slate-200"
                   />
                   <button
                     type="button"
                     onClick={() => setPreviewImage(currentQ.image_url!)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs mt-1"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs mt-1 active:scale-95 touch-manipulation"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
                     <span>Klik untuk Perbesar Diagram</span>
@@ -757,13 +758,13 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
               )}
 
               {/* Question Text */}
-              <div className="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed">
+              <div className="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed break-words">
                 {currentQ.content}
               </div>
 
               {/* Options Selection */}
               {currentQ.question_type !== 'isian_singkat' ? (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-2.5 sm:space-y-3 pt-1 sm:pt-2">
                   {currentQ.options.map((opt) => {
                     const isSelected = answersMap[currentQ.id]?.selected_option_ids?.includes(opt.id);
                     return (
@@ -771,14 +772,14 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                         key={opt.id}
                         type="button"
                         onClick={() => handleSelectOption(opt.id)}
-                        className={`w-full text-left p-4 rounded-2xl border-2 transition flex items-start gap-3.5 ${
+                        className={`w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition flex items-start gap-3 active:scale-[0.99] touch-manipulation min-h-[48px] ${
                           isSelected
-                            ? 'border-brand-500 bg-brand-50/50 shadow-sm'
+                            ? 'border-brand-500 bg-brand-50/60 shadow-xs ring-1 ring-brand-500/20'
                             : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/50'
                         }`}
                       >
                         <span
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition ${
+                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition ${
                             isSelected
                               ? 'bg-brand-600 text-white shadow-xs'
                               : 'bg-slate-100 text-slate-700'
@@ -786,7 +787,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                         >
                           {opt.option_label}
                         </span>
-                        <div className="flex-1 pt-1 text-xs sm:text-sm font-medium text-slate-800">
+                        <div className="flex-1 pt-0.5 sm:pt-1 text-xs sm:text-sm font-medium text-slate-800 leading-relaxed break-words">
                           {opt.content}
                         </div>
                       </button>
@@ -804,46 +805,57 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                     value={answersMap[currentQ.id]?.text_answer || ''}
                     onChange={(e) => handleTextAnswerChange(e.target.value)}
                     placeholder="Tuliskan jawaban Anda di sini..."
-                    className="w-full text-base sm:text-sm font-semibold p-3.5 sm:p-4 rounded-2xl border-2 border-slate-200 focus:border-brand-500 focus:outline-none bg-slate-50"
+                    className="w-full text-base sm:text-sm font-semibold p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 focus:border-brand-500 focus:outline-none bg-slate-50 min-h-[48px]"
                   />
                 </div>
               )}
 
               {/* Navigation Controls: Previous / Next / Submit */}
-              <div className="flex items-center justify-between pt-6 border-t border-slate-100 flex-wrap gap-3">
+              <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-slate-100 gap-2 sm:gap-3">
                 <button
                   type="button"
                   disabled={currentIndex === 0 || !exam.allow_backward}
                   onClick={() => setCurrentIndex(prev => prev - 1)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition min-h-[44px] active:scale-[0.98] touch-manipulation"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4 shrink-0" />
                   <span>Sebelumnya</span>
+                </button>
+
+                {/* Quick Palette Button on Phone */}
+                <button
+                  type="button"
+                  onClick={() => setPaletteOpen(true)}
+                  className="lg:hidden p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition min-h-[44px] flex items-center justify-center gap-1.5 px-3 shrink-0"
+                  title="Buka Daftar Nomor Soal"
+                >
+                  <Layers className="w-4 h-4 text-brand-600" />
+                  <span className="hidden xs:inline">No. Soal</span>
                 </button>
 
                 {currentIndex < questions.length - 1 ? (
                   <button
                     type="button"
                     onClick={() => setCurrentIndex(prev => prev + 1)}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 transition"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-600/20 transition min-h-[44px] active:scale-[0.98] touch-manipulation"
                   >
                     <span>Selanjutnya</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 shrink-0" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => setIsSubmitModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/25 transition min-h-[44px] active:scale-[0.98] touch-manipulation"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Kumpulkan Ujian</span>
+                    <Send className="w-4 h-4 shrink-0" />
+                    <span>Kumpulkan</span>
                   </button>
                 )}
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200">
+            <div className="p-10 sm:p-12 text-center bg-white rounded-2xl sm:rounded-3xl border border-slate-200">
               <p className="text-xs text-slate-500">Memuat butir soal asesmen...</p>
             </div>
           )}
@@ -859,7 +871,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
         {/* Right Column (1 Col): Question Navigation Palette */}
         <div
-          className={`lg:col-span-1 fixed lg:static inset-y-0 right-0 z-50 lg:z-auto w-80 max-w-[85vw] lg:w-auto bg-white rounded-l-3xl lg:rounded-3xl border border-slate-200 p-5 shadow-2xl lg:shadow-xs space-y-4 transition-transform duration-200 ease-out ${
+          className={`lg:col-span-1 fixed lg:static inset-y-0 right-0 z-50 lg:z-auto w-80 max-w-[88vw] lg:w-auto bg-white rounded-l-2xl sm:rounded-l-3xl lg:rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-2xl lg:shadow-xs flex flex-col justify-between space-y-3 sm:space-y-4 transition-transform duration-200 ease-out pb-safe ${
             paletteOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
           }`}
         >
@@ -870,14 +882,14 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
             </h4>
             <button
               onClick={() => setPaletteOpen(false)}
-              className="lg:hidden text-xs text-slate-400 font-bold"
+              className="lg:hidden text-xs text-slate-500 hover:text-slate-900 font-bold px-2 py-1 rounded-lg bg-slate-100"
             >
-              Tutup
+              ✕ Tutup
             </button>
           </div>
 
           {/* Palette Grid */}
-          <div className="grid grid-cols-5 gap-2 max-h-80 overflow-y-auto p-1">
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-h-[calc(100vh-250px)] lg:max-h-80 overflow-y-auto p-1 touch-scroll">
             {questions.map((q, idx) => {
               const ans = answersMap[q.id];
               const isAnswered = ans && (ans.selected_option_ids?.length > 0 || (ans.text_answer && ans.text_answer.trim().length > 0));
@@ -892,7 +904,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                     setCurrentIndex(idx);
                     setPaletteOpen(false);
                   }}
-                  className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center font-bold text-xs transition relative ${
+                  className={`w-full aspect-square min-h-[38px] rounded-xl flex flex-col items-center justify-center font-bold text-xs transition relative touch-manipulation active:scale-95 ${
                     isActive ? 'ring-2 ring-brand-500 ring-offset-2 scale-105 z-10' : ''
                   } ${
                     isMarked
@@ -912,17 +924,17 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           </div>
 
           {/* Color Legend */}
-          <div className="pt-3 border-t border-slate-100 space-y-2 text-[11px] text-slate-600">
+          <div className="pt-2.5 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-600">
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-md bg-emerald-600 shrink-0"></span>
+              <span className="w-3 h-3 rounded-md bg-emerald-600 shrink-0"></span>
               <span>Sudah dijawab ({answeredCount})</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-md bg-amber-400 shrink-0"></span>
+              <span className="w-3 h-3 rounded-md bg-amber-400 shrink-0"></span>
               <span>Ragu-ragu / Ditandai ({markedCount})</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-md bg-slate-200 shrink-0"></span>
+              <span className="w-3 h-3 rounded-md bg-slate-200 shrink-0"></span>
               <span>Belum dijawab ({unansweredCount})</span>
             </div>
           </div>
@@ -931,7 +943,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
           <button
             type="button"
             onClick={() => setIsSubmitModalOpen(true)}
-            className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-sm"
+            className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition shadow-sm min-h-[44px] active:scale-[0.98] touch-manipulation"
           >
             Selesaikan & Kumpulkan
           </button>
@@ -940,14 +952,14 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
       {/* Pre-submit Review Confirmation Dialog */}
       {isSubmitModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 p-6 shadow-2xl space-y-5 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-3.5 sm:p-4 animate-in fade-in overflow-y-auto">
+          <div className="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 text-center my-auto max-h-[92vh] overflow-y-auto">
             <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
 
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900">
                 Konfirmasi Pengumpulan Ujian
               </h3>
               <p className="text-xs text-slate-500 mt-1">
@@ -972,24 +984,24 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
             </div>
 
             {unansweredCount > 0 && (
-              <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+              <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-2.5 rounded-xl border border-rose-200 leading-relaxed">
                 Peringatan: Masih terdapat {unansweredCount} butir soal yang belum Anda jawab!
               </p>
             )}
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2.5 sm:gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsSubmitModalOpen(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="flex-1 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 min-h-[44px] active:scale-[0.98]"
               >
-                Kembali Periksa
+                Periksa Lagi
               </button>
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleFinalSubmit}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20"
+                className="flex-1 py-3 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 min-h-[44px] active:scale-[0.98]"
               >
                 {isSubmitting ? 'Mengirim...' : 'Ya, Kumpulkan'}
               </button>
@@ -1000,8 +1012,8 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
       {/* Fullscreen Violation Warning Modal */}
       {fullscreenWarningOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in">
-          <div className="max-w-md w-full bg-white rounded-3xl border border-rose-200 p-6 shadow-2xl text-center space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-3.5 sm:p-4 animate-in fade-in overflow-y-auto">
+          <div className="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl border border-rose-200 p-5 sm:p-6 shadow-2xl text-center space-y-4 my-auto max-h-[92vh] overflow-y-auto">
             <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
               <ShieldAlert className="w-6 h-6" />
             </div>
@@ -1022,9 +1034,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                   document.documentElement.requestFullscreen().catch(() => {});
                 }
               }}
-              className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition"
+              className="w-full py-3 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-slate-800 transition min-h-[44px] active:scale-[0.98]"
             >
-              Kembali ke Layar Penuh & Lanjutkan Ujian
+              Kembali ke Layar Penuh & Lanjutkan
             </button>
           </div>
         </div>
@@ -1032,32 +1044,32 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
       {/* Tab Switch / Blur Violation Modal (Strike Warning) */}
       {tabSwitchWarningOpen && !isForceSubmitted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 animate-in fade-in">
-          <div className="max-w-md w-full bg-white rounded-3xl border-2 border-rose-500 p-6 sm:p-7 shadow-2xl text-center space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-3.5 sm:p-4 animate-in fade-in overflow-y-auto">
+          <div className="max-w-md w-full bg-white rounded-2xl sm:rounded-3xl border-2 border-rose-500 p-5 sm:p-7 shadow-2xl text-center space-y-4 sm:space-y-5 my-auto max-h-[92vh] overflow-y-auto">
             {/* Warning Icon with Pulse */}
-            <div className="w-16 h-16 rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-lg shadow-rose-500/20">
-              <ShieldAlert className="w-8 h-8 animate-bounce" />
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-lg shadow-rose-500/20">
+              <ShieldAlert className="w-7 h-7 sm:w-8 sm:h-8 animate-bounce" />
             </div>
 
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 border border-rose-200">
-                🚨 PELANGGARAN KECURANGAN TERDETEKSI
+              <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 border border-rose-200">
+                🚨 PELANGGARAN TERDETEKSI
               </span>
-              <h3 className="text-lg font-black text-slate-900 mt-2 tracking-tight">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-2 tracking-tight">
                 Anda Meninggalkan Halaman Ujian!
               </h3>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                 Anda terdeteksi berpindah tab, meminimalkan browser, atau membuka aplikasi lain. Kejadian ini dicatat secara realtime ke sistem pengawas.
               </p>
             </div>
 
             {/* Strike Indicators */}
-            <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-200 space-y-2">
-              <div className="flex items-center justify-center gap-3">
+            <div className="p-3 sm:p-4 rounded-2xl bg-rose-50/80 border border-rose-200 space-y-2">
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
                 {[1, 2, 3].map((strike) => (
                   <div key={strike} className="flex flex-col items-center gap-1">
                     <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition ${
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-black text-xs transition ${
                         strike <= violationCount
                           ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-2 ring-rose-300'
                           : 'bg-white text-slate-400 border border-slate-300'
@@ -1074,8 +1086,8 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
               <p className="text-[11px] font-extrabold text-rose-800 pt-1">
                 Peringatan {violationCount} dari {MAX_STRIKES} kali batas toleransi!
               </p>
-              <p className="text-[10px] text-rose-600 font-medium">
-                Sisa kesempatan: <strong>{Math.max(0, MAX_STRIKES - violationCount)} kali</strong>. Jika berpindah tab lagi, ujian akan <strong>OTOMATIS DIKUNCI PERMANEN</strong> dan diserahkan ke guru pengawas!
+              <p className="text-[10px] text-rose-600 font-medium leading-relaxed">
+                Sisa kesempatan: <strong>{Math.max(0, MAX_STRIKES - violationCount)} kali</strong>. Jika berpindah tab lagi, ujian akan <strong>OTOMATIS DIKUNCI PERMANEN</strong>!
               </p>
             </div>
 
@@ -1086,9 +1098,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
                   document.documentElement.requestFullscreen().catch(() => {});
                 }
               }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-bold shadow-lg shadow-rose-600/25 transition active:scale-[0.99]"
+              className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-600/25 transition active:scale-[0.99] min-h-[46px]"
             >
-              Saya Mengerti & Kembali Mengerjakan Ujian
+              Saya Mengerti & Lanjutkan Ujian
             </button>
           </div>
         </div>

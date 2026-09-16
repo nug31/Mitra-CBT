@@ -6,11 +6,35 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   body {
     @apply bg-slate-50 text-slate-800 antialiased font-sans;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
   }
+}
+
+/* Mobile safe area support */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Mobile smooth scrolling container */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* Custom scrollbar for Question Palette and Tables */

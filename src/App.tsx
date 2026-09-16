@@ -17,15 +17,17 @@ const MainLayout: React.FC = () => {
   const { role, currentUser, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedExamId, setSelectedExamId] = useState<string | undefined>(undefined);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const handleNavigate = (tab: string, extraId?: string) => {
     setActiveTab(tab);
     if (extraId) setSelectedExamId(extraId);
+    setIsMobileMenuOpen(false);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+      <div className="min-h-screen min-h-[100dvh] bg-slate-950 flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-3">
           <div className="w-9 h-9 border-3 border-sky-400 border-t-transparent rounded-full animate-spin" />
           <p className="text-xs text-slate-400 font-medium">Memuat Sistem Mitra CBT...</p>
@@ -42,9 +44,9 @@ const MainLayout: React.FC = () => {
   // Student Experience
   if (role === 'siswa') {
     return (
-      <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+      <div className="min-h-screen min-h-[100dvh] bg-slate-100 flex flex-col font-sans">
         <Navbar />
-        <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+        <div className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6">
           <StudentPortalView />
         </div>
       </div>
@@ -53,13 +55,21 @@ const MainLayout: React.FC = () => {
 
   // Teacher & Admin Experience
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      <Navbar />
+    <div className="min-h-screen min-h-[100dvh] bg-slate-100 flex flex-col font-sans">
+      <Navbar 
+        isMobileMenuOpen={isMobileMenuOpen}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+      />
 
       <div className="flex-1 flex max-w-7xl w-full mx-auto items-stretch">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 overflow-y-auto min-w-0">
           {/* Guru Menus */}
           {role === 'guru' && (
             <>

@@ -81,46 +81,46 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-brand-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100 font-sans">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-900 via-slate-950 to-brand-950 flex flex-col justify-center items-center py-6 px-3.5 sm:p-6 text-slate-100 font-sans overflow-y-auto">
       {/* Glow Effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-60 sm:w-80 h-60 sm:h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-lg z-10">
+      <div className="relative w-full max-w-lg z-10 my-auto">
         {/* Brand Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 text-white shadow-xl shadow-brand-500/30 mb-3">
-            <Layers className="w-8 h-8" />
+        <div className="text-center mb-5 sm:mb-6">
+          <div className="inline-flex items-center justify-center w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 text-white shadow-xl shadow-brand-500/30 mb-2.5 sm:mb-3">
+            <Layers className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
             MITRA CBT
           </h1>
-          <p className="text-xs uppercase tracking-widest text-sky-400 font-bold mt-0.5">
+          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-sky-400 font-bold mt-0.5">
             Digital Assessment System SMK
           </p>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-1 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
             Platform asesmen digital kejuruan: STS, SAS, Remedial, Ulangan Harian, &amp; Ujian Teori Kejuruan
           </p>
         </div>
 
         {/* Card Container */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20 text-slate-800">
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4.5 sm:p-8 shadow-2xl border border-white/20 text-slate-800">
           {/* Tab Selector */}
-          <div className="flex rounded-2xl bg-slate-100 p-1 mb-6 border border-slate-200">
+          <div className="flex rounded-2xl bg-slate-100 p-1 mb-5 sm:mb-6 border border-slate-200">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('siswa');
                 setErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'siswa'
                   ? 'bg-white text-emerald-700 shadow-md shadow-emerald-500/10'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <GraduationCap className="w-4 h-4 text-emerald-600" />
-              <span>Login Siswa (NISN)</span>
+              <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="truncate">Login Siswa (NISN)</span>
             </button>
 
             <button
@@ -129,14 +129,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 setActiveTab('guru_admin');
                 setErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'guru_admin'
                   ? 'bg-white text-brand-700 shadow-md shadow-brand-500/10'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <BookOpen className="w-4 h-4 text-brand-600" />
-              <span>Guru &amp; Admin</span>
+              <BookOpen className="w-4 h-4 text-brand-600 shrink-0" />
+              <span className="truncate">Guru &amp; Admin</span>
             </button>
           </div>
 
@@ -263,7 +263,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     value={teacherEmail}
                     onChange={(e) => setTeacherEmail(e.target.value)}
                     placeholder="Email atau NIP..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
                   />
                 </div>
               </div>
@@ -281,12 +281,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     value={teacherPassword}
                     onChange={(e) => setTeacherPassword(e.target.value)}
                     placeholder="Masukkan password..."
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-10 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowTeacherPw(!showTeacherPw)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
                   >
                     {showTeacherPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -297,7 +297,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 id="btn-login-guru"
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-500 hover:to-sky-500 text-white font-bold text-xs shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
+                className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-500 hover:to-sky-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50 min-h-[48px]"
               >
                 {loading ? <span>Memverifikasi...</span> : <span>Masuk Portal Pendidik</span>}
               </button>
@@ -306,7 +306,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-slate-500 mt-5">
+        <p className="text-center text-[11px] text-slate-400 mt-4 sm:mt-5">
           &copy; {new Date().getFullYear()} Mitra CBT — SMK Digital Assessment Architecture
         </p>
       </div>
