@@ -600,7 +600,7 @@ class DBService {
       gtoExam.status = 'active';
       gtoExam.pin_code = 'GT010';
       gtoExam.class_id = 'all';
-      if (gtoQuestions.length > 0 && (!gtoExam.questions || gtoExam.questions.length < gtoQuestions.length)) {
+      if (gtoQuestions.length > 0 && (!gtoExam.questions || gtoExam.questions.length !== gtoQuestions.length)) {
         gtoExam.question_count = gtoQuestions.length;
         gtoExam.questions = gtoQuestions;
       }
