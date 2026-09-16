@@ -74,7 +74,7 @@ const MainLayout: React.FC = () => {
           {role === 'guru' && (
             <>
               {activeTab === 'dashboard' && <TeacherDashboardView onNavigate={handleNavigate} />}
-              {activeTab === 'bank_soal' && <QuestionBankView />}
+              {activeTab === 'bank_soal' && <QuestionBankView onNavigateToExams={(id) => handleNavigate('ujian', id)} />}
               {activeTab === 'ujian' && (
                 <ExamManagementView
                   onNavigateToMonitoring={(id) => handleNavigate('monitoring', id)}

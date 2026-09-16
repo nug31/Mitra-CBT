@@ -4,7 +4,8 @@ import {
   AssessmentType, 
   Subject, 
   ClassRoom, 
-  Question 
+  Question,
+  QuestionBank
 } from '../../types';
 import { 
   X, 
@@ -36,6 +37,9 @@ export const ExamModal: React.FC<ExamModalProps> = ({
   subjects,
   classes
 }) => {
+  const [availableBanks, setAvailableBanks] = useState<QuestionBank[]>([]);
+  const [selectedBankId, setSelectedBankId] = useState<string>('auto');
+
   const [assessmentTypeId, setAssessmentTypeId] = useState(
     initialExam?.assessment_type_id || (assessmentTypes[0]?.id ?? '')
   );
@@ -67,6 +71,13 @@ export const ExamModal: React.FC<ExamModalProps> = ({
   const [hardCount, setHardCount] = useState(10);
 
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    db.getQuestionBanks().then(bList => {
+      setAvailableBanks(bList);
+    });
+  }, [isOpen]);
 
   // Sync all form fields whenever the modal opens or initialExam changes (Edit mode)
   useEffect(() => {
@@ -124,33 +135,55 @@ export const ExamModal: React.FC<ExamModalProps> = ({
     }
   }, [assessmentTypeId, subjectId, classId]);
 
+  // Handle bank change
+  const handleBankChange = (bId: string) => {
+    setSelectedBankId(bId);
+    if (bId !== 'auto') {
+      const b = availableBanks.find(x => x.id === bId);
+      if (b) {
+        if (b.subject_id) setSubjectId(b.subject_id);
+        if (b.question_count) setQuestionCount(b.question_count);
+        const selType = assessmentTypes.find(t => t.id === assessmentTypeId);
+        const prefix = selType?.code || 'STS';
+        const cleanTitle = b.title.replace(/^Bank Soal (Komprehensif )?/i, '');
+        const selCls = classes.find(c => c.id === classId);
+        setTitle(`${prefix} ${cleanTitle} ${selCls ? selCls.name : ''}`.trim());
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Pick questions from banks matching the subject and target grade
+      // Pick questions from selected bank or banks matching the subject and target grade
       const allQuestions = await db.getQuestions();
-      const subjectBanks = (await db.getQuestionBanks()).filter(b => b.subject_id === subjectId);
-      const classes = await db.getClasses();
-      const currentClass = classes.find(c => c.id === classId);
-      const classGrade = currentClass?.grade; // 'X' | 'XI' | 'XII'
+      let candidateQuestions: Question[] = [];
 
-      let candidateBanks = subjectBanks;
-      if (classGrade) {
-        const matchingBanks = subjectBanks.filter(b => !b.target_grades || b.target_grades.length === 0 || b.target_grades.includes(classGrade));
-        if (matchingBanks.length > 0) {
-          candidateBanks = matchingBanks;
+      if (selectedBankId && selectedBankId !== 'auto') {
+        candidateQuestions = allQuestions.filter(q => q.bank_id === selectedBankId);
+      } else {
+        const subjectBanks = (await db.getQuestionBanks()).filter(b => b.subject_id === subjectId);
+        const currentClass = classes.find(c => c.id === classId);
+        const classGrade = currentClass?.grade; // 'X' | 'XI' | 'XII'
+
+        let candidateBanks = subjectBanks;
+        if (classGrade) {
+          const matchingBanks = subjectBanks.filter(b => !b.target_grades || b.target_grades.length === 0 || b.target_grades.includes(classGrade));
+          if (matchingBanks.length > 0) {
+            candidateBanks = matchingBanks;
+          }
         }
-      }
 
-      const bankIds = candidateBanks.map(b => b.id);
-      let candidateQuestions = allQuestions.filter(q => bankIds.includes(q.bank_id));
+        const bankIds = candidateBanks.map(b => b.id);
+        candidateQuestions = allQuestions.filter(q => bankIds.includes(q.bank_id));
 
-      if (classGrade) {
-        const gradeQuestions = candidateQuestions.filter(q => !q.target_grades || q.target_grades.length === 0 || q.target_grades.includes(classGrade));
-        if (gradeQuestions.length > 0) {
-          candidateQuestions = gradeQuestions;
+        if (classGrade) {
+          const gradeQuestions = candidateQuestions.filter(q => !q.target_grades || q.target_grades.length === 0 || q.target_grades.includes(classGrade));
+          if (gradeQuestions.length > 0) {
+            candidateQuestions = gradeQuestions;
+          }
         }
       }
 
@@ -213,6 +246,28 @@ export const ExamModal: React.FC<ExamModalProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+          {/* Sumber Bank Soal Selector */}
+          <div className="bg-sky-50/80 p-3.5 rounded-2xl border border-sky-200/90 space-y-1.5">
+            <label className="block text-xs font-bold text-sky-950 uppercase">
+              Sumber Bank Soal (Pilih Bank Soal Hasil Import / Kurasi Guru)
+            </label>
+            <select
+              value={selectedBankId}
+              onChange={(e) => handleBankChange(e.target.value)}
+              className="w-full text-xs font-semibold px-3 py-2 rounded-xl border border-sky-300 bg-white text-slate-800 focus:ring-2 focus:ring-brand-500 shadow-2xs"
+            >
+              <option value="auto">-- Otomatis Pilih dari Mata Pelajaran & Kelas --</option>
+              {availableBanks.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.title} ({b.question_count || 0} Butir Soal)
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-sky-700">
+              💡 Memilih Bank Soal akan otomatis menyelaraskan Mata Pelajaran, Jumlah Soal ({questionCount} soal), dan mengaitkan seluruh butir soal hasil import.
+            </p>
+          </div>
+
           {/* Main Info */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>

@@ -561,6 +561,49 @@ class DBService {
       setStorage('exams', localExams);
     }
 
+    // Auto-migrate: ensure STS Gambar Teknik Otomotif (GTO) Kelas X exists with imported questions from bank-01
+    const storedQuestions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
+    const gtoQuestions = storedQuestions.filter(q => q.bank_id === 'bank-01');
+    let gtoExam = localExams.find(e => e.id === 'exam-gto-x' || e.title.toLowerCase().includes('gambar teknik') || e.title.toLowerCase().includes('gto'));
+
+    if (!gtoExam) {
+      const newGtoExam: Exam = {
+        id: 'exam-gto-x',
+        title: 'STS Gambar Teknik Otomotif (GTO) Kelas X',
+        assessment_type_id: 'eval-01',
+        subject_id: 'subj-01',
+        class_id: 'cls-tkr-1',
+        teacher_id: 'teacher-01',
+        academic_year: '2024/2025',
+        semester: 'Ganjil',
+        start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        end_time: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+        duration_minutes: 90,
+        question_count: gtoQuestions.length || 28,
+        kkm: 75,
+        randomize_questions: true,
+        randomize_options: true,
+        allow_backward: true,
+        fullscreen_mode: true,
+        single_attempt: true,
+        show_results_immediately: true,
+        show_explanation: true,
+        pin_code: 'GTO10',
+        status: 'active',
+        questions: gtoQuestions
+      };
+      localExams.unshift(newGtoExam);
+      setStorage('exams', localExams);
+    } else {
+      // Sync questions count if bank-01 has more questions imported
+      if (gtoQuestions.length > 0 && (!gtoExam.questions || gtoExam.questions.length < gtoQuestions.length)) {
+        gtoExam.question_count = gtoQuestions.length;
+        gtoExam.questions = gtoQuestions;
+        gtoExam.status = 'active';
+        setStorage('exams', localExams);
+      }
+    }
+
     const types = await this.getAssessmentTypes();
     const subjects = await this.getSubjects();
     const classes = await this.getClasses();

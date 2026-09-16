@@ -107,8 +107,8 @@ export const StudentPortalView: React.FC = () => {
     const inputClean = pinInput.trim().toUpperCase();
     const examPinClean = pinModalExam.pin_code.trim().toUpperCase();
 
-    // Accept matching PIN or known aliases ('NC5NZ', 'ENG40')
-    if (inputClean && inputClean !== examPinClean && inputClean !== 'NC5NZ' && inputClean !== 'ENG40') {
+    // Accept matching PIN or known aliases ('NC5NZ', 'ENG40', 'GTO10')
+    if (inputClean && inputClean !== examPinClean && inputClean !== 'NC5NZ' && inputClean !== 'ENG40' && inputClean !== 'GTO10') {
       setPinError('Kode PIN Ujian tidak cocok. Silakan tanyakan kepada pengawas ruang.');
       return;
     }

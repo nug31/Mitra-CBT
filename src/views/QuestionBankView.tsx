@@ -23,7 +23,8 @@ import {
   BarChart2,
   FileText,
   Settings,
-  Layers
+  Layers,
+  CalendarClock
 } from 'lucide-react';
 import { QuestionEditorModal } from '../components/bank/QuestionEditorModal';
 import { ExcelImportModal } from '../components/bank/ExcelImportModal';
@@ -31,12 +32,17 @@ import { WordImportModal } from '../components/bank/WordImportModal';
 import { EditBankModal } from '../components/bank/EditBankModal';
 import { ImageModal } from '../components/common/ImageModal';
 
-export const QuestionBankView: React.FC = () => {
+interface QuestionBankViewProps {
+  onNavigateToExams?: (examId?: string) => void;
+}
+
+export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateToExams }) => {
   const [banks, setBanks] = useState<QuestionBank[]>([]);
   const [selectedBankId, setSelectedBankId] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [materials, setMaterials] = useState<SubjectMaterial[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -122,6 +128,51 @@ export const QuestionBankView: React.FC = () => {
     await loadQuestions(selectedBankId);
     const updatedBanks = await db.getQuestionBanks();
     setBanks(updatedBanks);
+  };
+
+  const handlePublishToExam = async () => {
+    if (!selectedBank) return;
+    setIsPublishing(true);
+    try {
+      const currentQuestions = await db.getQuestions();
+      const bankQuestions = currentQuestions.filter(q => q.bank_id === selectedBank.id);
+      
+      const cleanTitle = selectedBank.title.replace(/^Bank Soal (Komprehensif )?/i, '');
+      const examTitle = `STS ${cleanTitle}`;
+      
+      const newExam = await db.saveExam({
+        title: examTitle,
+        assessment_type_id: 'eval-01', // STS
+        subject_id: selectedBank.subject_id,
+        class_id: 'cls-tkr-1',
+        academic_year: '2024/2025',
+        semester: 'Ganjil',
+        duration_minutes: 90,
+        question_count: bankQuestions.length || selectedBank.question_count || 28,
+        kkm: 75,
+        randomize_questions: true,
+        randomize_options: true,
+        allow_backward: true,
+        fullscreen_mode: true,
+        single_attempt: true,
+        show_results_immediately: true,
+        show_explanation: true,
+        pin_code: 'GTO10',
+        status: 'active',
+        start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        end_time: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+        questions: bankQuestions
+      });
+
+      alert(`✅ Berhasil Menerbitkan ke Jadwal Ujian CBT!\n\nJudul Ujian: "${newExam.title}"\nJumlah Butir: ${newExam.question_count} Soal\nPIN Peserta: ${newExam.pin_code}\n\nSekarang Anda akan dialihkan ke halaman Jadwal Ujian.`);
+      if (onNavigateToExams) {
+        onNavigateToExams(newExam.id);
+      }
+    } catch (err: any) {
+      alert('Gagal menerbitkan ujian: ' + (err?.message || 'Terjadi kesalahan'));
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const selectedBank = banks.find(b => b.id === selectedBankId);
@@ -286,13 +337,24 @@ export const QuestionBankView: React.FC = () => {
                 {selectedBank.description || 'Materi bank soal kejuruan otomotif & konversi energi.'}
               </p>
             </div>
-            <button
-              onClick={() => setIsEditBankOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 border border-slate-200 text-slate-700 text-xs font-bold transition shrink-0 self-start sm:self-auto"
-            >
-              <Settings className="w-3.5 h-3.5 text-slate-500" />
-              <span>Edit Info & Target Kelas</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto flex-wrap">
+              <button
+                onClick={handlePublishToExam}
+                disabled={isPublishing}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-700 hover:to-sky-700 text-white text-xs font-bold shadow-md shadow-brand-600/25 transition active:scale-95 disabled:opacity-50"
+              >
+                <CalendarClock className="w-3.5 h-3.5 text-white" />
+                <span>{isPublishing ? 'Menerbitkan...' : '🚀 Terbitkan ke Jadwal Ujian (CBT)'}</span>
+              </button>
+
+              <button
+                onClick={() => setIsEditBankOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 border border-slate-200 text-slate-700 text-xs font-bold transition"
+              >
+                <Settings className="w-3.5 h-3.5 text-slate-500" />
+                <span>Edit Info & Target Kelas</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
