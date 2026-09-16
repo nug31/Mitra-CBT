@@ -105,6 +105,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const screenCheckTimerRef = useRef<any>(null);
   const lastViolationTimeRef = useRef<number>(0);
+  const dismissCooldownRef = useRef<boolean>(false); // True during the 4s cooldown after dismiss modal
 
   // Synchronize live refs
   useEffect(() => {
@@ -307,8 +308,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   // 1. Trigger Tab Switch / Window Blur Breach
   const triggerTabSwitchViolation = (reason?: string) => {
     if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+    if (dismissCooldownRef.current) return; // Suppress re-trigger during post-dismiss cooldown
     const now = Date.now();
-    if (now - lastViolationTimeRef.current < 1500) return; // Debounce fast consecutive blurs
+    if (now - lastViolationTimeRef.current < 4000) return; // Debounce 4s to prevent double triggers
     lastViolationTimeRef.current = now;
 
     const note = reason || 'Membuka tab baru / beralih jendela aplikasi';
@@ -345,8 +347,9 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
   // 2. Trigger Multi-Screen / Split Screen Breach
   const triggerMultiScreenViolation = (reason: string) => {
     if (!hasStartedRef.current || examResultRef.current || isSubmittingRef.current) return;
+    if (dismissCooldownRef.current) return; // Suppress re-trigger during post-dismiss cooldown
     const now = Date.now();
-    if (now - lastViolationTimeRef.current < 2000) return;
+    if (now - lastViolationTimeRef.current < 4000) return;
     lastViolationTimeRef.current = now;
 
     setLastViolationReason(reason);
@@ -1364,10 +1367,17 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
             <button
               onClick={() => {
+                // Set cooldown BEFORE calling requestFullscreen so the resulting blur/focus events are ignored
+                wasBlurredRef.current = false;
+                dismissCooldownRef.current = true;
+                lastViolationTimeRef.current = Date.now();
                 setTabSwitchWarningOpen(false);
+                setIsScreenShielded(false);
                 if (document.documentElement.requestFullscreen) {
                   document.documentElement.requestFullscreen().catch(() => {});
                 }
+                // Release cooldown after 4s (enough for fullscreen transition + any stray events)
+                setTimeout(() => { dismissCooldownRef.current = false; }, 4000);
               }}
               className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-600/25 transition active:scale-[0.99] min-h-[46px]"
             >
@@ -1525,11 +1535,17 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
             <button
               onClick={() => {
+                // Set cooldown BEFORE calling requestFullscreen so the resulting blur/focus events are ignored
+                wasBlurredRef.current = false;
+                dismissCooldownRef.current = true;
+                lastViolationTimeRef.current = Date.now();
                 setMultiScreenWarningOpen(false);
                 setIsScreenShielded(false);
                 if (document.documentElement.requestFullscreen) {
                   document.documentElement.requestFullscreen().catch(() => {});
                 }
+                // Release cooldown after 4s (enough for fullscreen transition + any stray events)
+                setTimeout(() => { dismissCooldownRef.current = false; }, 4000);
               }}
               className="w-full py-3.5 sm:py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-600/25 transition active:scale-[0.99] min-h-[46px]"
             >
