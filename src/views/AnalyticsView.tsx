@@ -63,8 +63,31 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   const loadExamAnalytics = async (examId: string) => {
     const exam = await db.getExamById(examId);
-    const resList = await db.getExamResults(examId);
+    let resList = await db.getExamResults(examId);
     const qList = exam?.questions || (await db.getQuestions());
+
+    // If resList is missing submitted participants, sync from participants table
+    const participants = await db.getExamParticipants(examId);
+    const submittedParts = participants.filter(p => p.status === 'submitted' || p.status === 'force_submitted' || p.score !== undefined);
+    
+    for (const sp of submittedParts) {
+      if (!resList.some(r => r.participant_id === sp.id)) {
+        resList.push({
+          id: 'res-sync-' + sp.id,
+          exam_id: examId,
+          participant_id: sp.id,
+          total_score: sp.score ?? 0,
+          max_possible_score: 100,
+          percentage: sp.score ?? 0,
+          correct_count: Math.round(((sp.score ?? 0) / 100) * (qList.length || 25)),
+          wrong_count: (qList.length || 25) - Math.round(((sp.score ?? 0) / 100) * (qList.length || 25)),
+          unattempted_count: 0,
+          passed: (sp.score ?? 0) >= (exam?.kkm || 75),
+          graded_at: sp.finish_time || new Date().toISOString(),
+          participant: sp
+        });
+      }
+    }
 
     setResults(resList);
     setQuestions(qList);
@@ -125,27 +148,43 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     }
   };
 
-  // Export to Excel
+  // Export to Excel (Nama, NISN, Kelas, Nilai)
   const handleExportExcel = () => {
-    if (!selectedExam || results.length === 0) return;
+    if (!selectedExam || results.length === 0) {
+      alert('Belum ada data nilai peserta untuk diexport.');
+      return;
+    }
 
     const dataRows = results.map((r, i) => ({
-      No: i + 1,
-      NIS: r.participant?.student?.nis || '-',
+      'No': i + 1,
       'Nama Siswa': r.participant?.student?.profile?.full_name || '-',
-      Kelas: selectedExam.class?.name || '-',
-      'Nilai Akhir': r.total_score,
-      Benar: r.correct_count,
-      Salah: r.wrong_count,
-      KKM: selectedExam.kkm,
+      'NISN': r.participant?.student?.nisn || r.participant?.student?.nis || '-',
+      'Kelas': r.participant?.student?.class?.name || selectedExam.class?.name || '-',
+      'Nilai': r.total_score,
       'Status Kelulusan': r.passed ? 'LULUS' : 'REMEDIAL',
-      'Waktu Selesai': new Date(r.graded_at).toLocaleString('id-ID')
+      'Benar': r.correct_count,
+      'Salah': r.wrong_count,
+      'KKM': selectedExam.kkm,
+      'Waktu Selesai': r.graded_at ? new Date(r.graded_at).toLocaleString('id-ID') : '-'
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataRows);
+    ws['!cols'] = [
+      { wch: 6 },  // No
+      { wch: 30 }, // Nama Siswa
+      { wch: 20 }, // NISN
+      { wch: 16 }, // Kelas
+      { wch: 12 }, // Nilai
+      { wch: 20 }, // Status Kelulusan
+      { wch: 10 }, // Benar
+      { wch: 10 }, // Salah
+      { wch: 10 }, // KKM
+      { wch: 22 }  // Waktu Selesai
+    ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Nilai');
-    XLSX.writeFile(wb, `Rekap_Nilai_${selectedExam.title.replace(/\s+/g, '_')}.xlsx`);
+    const safeTitle = (selectedExam.title || 'Rekap_Nilai').replace(/[^a-zA-Z0-9_-]/g, '_');
+    XLSX.writeFile(wb, `Rekap_Nilai_${safeTitle}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -406,7 +445,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               <tr>
                 <th className="p-3.5 font-bold">No</th>
                 <th className="p-3.5 font-bold">Nama Lengkap Siswa</th>
-                <th className="p-3.5 font-bold">NIS</th>
+                <th className="p-3.5 font-bold">NISN</th>
+                <th className="p-3.5 font-bold">Kelas</th>
                 <th className="p-3.5 font-bold text-center">Benar / Salah</th>
                 <th className="p-3.5 font-bold text-center">Nilai Akhir</th>
                 <th className="p-3.5 font-bold text-center">Status</th>
@@ -419,8 +459,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   <td className="p-3.5 font-bold text-slate-900">
                     {r.participant?.student?.profile?.full_name || 'Peserta'}
                   </td>
-                  <td className="p-3.5 font-mono text-slate-500">
-                    {r.participant?.student?.nis || '-'}
+                  <td className="p-3.5 font-mono text-slate-600 font-semibold">
+                    {r.participant?.student?.nisn || r.participant?.student?.nis || '-'}
+                  </td>
+                  <td className="p-3.5 font-bold text-brand-700">
+                    {r.participant?.student?.class?.name || selectedExam?.class?.name || '-'}
                   </td>
                   <td className="p-3.5 text-center font-mono">
                     <span className="text-emerald-600 font-bold">{r.correct_count}</span> /{' '}

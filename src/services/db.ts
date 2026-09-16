@@ -207,7 +207,14 @@ class DBService {
 
   // Classes
   async getClasses(): Promise<ClassRoom[]> {
-    return getStorage<ClassRoom[]>('classes', INITIAL_CLASSES);
+    let classes = getStorage<ClassRoom[]>('classes', INITIAL_CLASSES);
+    // If stored classes don't contain the target exam classes ('X TKR 1', 'X TKR 2', 'X TKR 1 03', 'X TKR 2 03'), reset/update to INITIAL_CLASSES
+    const hasTargetClasses = classes && classes.some(c => c.name === 'X TKR 1' || c.name === 'X TKR 1 03');
+    if (!hasTargetClasses) {
+      classes = INITIAL_CLASSES;
+      setStorage('classes', INITIAL_CLASSES);
+    }
+    return classes;
   }
 
   async addClass(cls: Omit<ClassRoom, 'id'>): Promise<ClassRoom> {

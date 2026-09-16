@@ -109,40 +109,12 @@ export const INITIAL_PROFILES: Profile[] = [
   }
 ];
 
-// 8 Vocational Majors (TKR, Mesin, TSM, Elind, Akuntansi, Listrik, Hotel, TKI)
+// Classes for Exam: X TKR 1, X TKR 2, X TKR 1 03, and X TKR 2 03
 export const INITIAL_CLASSES: ClassRoom[] = [
-  // 1. TKR
-  { id: 'cls-tkr-10', name: 'X TKR', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
-  { id: 'cls-tkr-11', name: 'XI TKR', grade: 'XI', major: 'TKR', academic_year: '2024/2025' },
-  { id: 'cls-tkr-12', name: 'XII TKR', grade: 'XII', major: 'TKR', academic_year: '2024/2025' },
-  // 2. Mesin
-  { id: 'cls-msn-10', name: 'X Mesin', grade: 'X', major: 'Mesin', academic_year: '2024/2025' },
-  { id: 'cls-msn-11', name: 'XI Mesin', grade: 'XI', major: 'Mesin', academic_year: '2024/2025' },
-  { id: 'cls-msn-12', name: 'XII Mesin', grade: 'XII', major: 'Mesin', academic_year: '2024/2025' },
-  // 3. TSM
-  { id: 'cls-tsm-10', name: 'X TSM', grade: 'X', major: 'TSM', academic_year: '2024/2025' },
-  { id: 'cls-tsm-11', name: 'XI TSM', grade: 'XI', major: 'TSM', academic_year: '2024/2025' },
-  { id: 'cls-tsm-12', name: 'XII TSM', grade: 'XII', major: 'TSM', academic_year: '2024/2025' },
-  // 4. Elind
-  { id: 'cls-eld-10', name: 'X Elind', grade: 'X', major: 'Elind', academic_year: '2024/2025' },
-  { id: 'cls-eld-11', name: 'XI Elind', grade: 'XI', major: 'Elind', academic_year: '2024/2025' },
-  { id: 'cls-eld-12', name: 'XII Elind', grade: 'XII', major: 'Elind', academic_year: '2024/2025' },
-  // 5. Akuntansi
-  { id: 'cls-akt-10', name: 'X Akuntansi', grade: 'X', major: 'Akuntansi', academic_year: '2024/2025' },
-  { id: 'cls-akt-11', name: 'XI Akuntansi', grade: 'XI', major: 'Akuntansi', academic_year: '2024/2025' },
-  { id: 'cls-akt-12', name: 'XII Akuntansi', grade: 'XII', major: 'Akuntansi', academic_year: '2024/2025' },
-  // 6. Listrik
-  { id: 'cls-ltr-10', name: 'X Listrik', grade: 'X', major: 'Listrik', academic_year: '2024/2025' },
-  { id: 'cls-ltr-11', name: 'XI Listrik', grade: 'XI', major: 'Listrik', academic_year: '2024/2025' },
-  { id: 'cls-ltr-12', name: 'XII Listrik', grade: 'XII', major: 'Listrik', academic_year: '2024/2025' },
-  // 7. Hotel
-  { id: 'cls-htl-10', name: 'X Hotel', grade: 'X', major: 'Hotel', academic_year: '2024/2025' },
-  { id: 'cls-htl-11', name: 'XI Hotel', grade: 'XI', major: 'Hotel', academic_year: '2024/2025' },
-  { id: 'cls-htl-12', name: 'XII Hotel', grade: 'XII', major: 'Hotel', academic_year: '2024/2025' },
-  // 8. TKI
-  { id: 'cls-tki-10', name: 'X TKI', grade: 'X', major: 'TKI', academic_year: '2024/2025' },
-  { id: 'cls-tki-11', name: 'XI TKI', grade: 'XI', major: 'TKI', academic_year: '2024/2025' },
-  { id: 'cls-tki-12', name: 'XII TKI', grade: 'XII', major: 'TKI', academic_year: '2024/2025' },
+  { id: 'cls-tkr-1', name: 'X TKR 1', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-2', name: 'X TKR 2', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-1-03', name: 'X TKR 1 03', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-2-03', name: 'X TKR 2 03', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
 ];
 
 // Real Students: Initially empty, populated by user Excel Import
@@ -723,7 +695,7 @@ export const INITIAL_EXAMS: Exam[] = [
     title: 'STS Gambar Teknik XI TKR',
     assessment_type_id: 'eval-01',
     subject_id: 'subj-01',
-    class_id: 'cls-tkr-11',
+    class_id: 'cls-tkr-1',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -743,7 +715,7 @@ export const INITIAL_EXAMS: Exam[] = [
     status: 'active',
     assessment_type: INITIAL_ASSESSMENT_TYPES[0],
     subject: INITIAL_SUBJECTS[0],
-    class: INITIAL_CLASSES[1],
+    class: INITIAL_CLASSES[0],
     questions: [INITIAL_QUESTIONS[0], INITIAL_QUESTIONS[2], INITIAL_QUESTIONS[6]]
   },
   {
@@ -751,7 +723,7 @@ export const INITIAL_EXAMS: Exam[] = [
     title: 'SAS Konversi Energi XI TKR',
     assessment_type_id: 'eval-02',
     subject_id: 'subj-02',
-    class_id: 'cls-tkr-11',
+    class_id: 'cls-tkr-2',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -779,7 +751,7 @@ export const INITIAL_EXAMS: Exam[] = [
     title: 'STS Dasar Konversi TKR (XII TKR)',
     assessment_type_id: 'eval-01',
     subject_id: 'subj-02',
-    class_id: 'cls-tkr-12',
+    class_id: 'cls-tkr-1-03',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -807,7 +779,7 @@ export const INITIAL_EXAMS: Exam[] = [
     title: 'Ulangan Harian Motor Bakar X TKR',
     assessment_type_id: 'eval-03',
     subject_id: 'subj-02',
-    class_id: 'cls-tkr-10',
+    class_id: 'cls-tkr-2-03',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
@@ -827,7 +799,7 @@ export const INITIAL_EXAMS: Exam[] = [
     status: 'finished',
     assessment_type: INITIAL_ASSESSMENT_TYPES[2],
     subject: INITIAL_SUBJECTS[1],
-    class: INITIAL_CLASSES[0],
+    class: INITIAL_CLASSES[3],
     questions: [INITIAL_QUESTIONS[1], INITIAL_QUESTIONS[3], INITIAL_QUESTIONS[4], INITIAL_QUESTIONS[5]]
   }
 ];

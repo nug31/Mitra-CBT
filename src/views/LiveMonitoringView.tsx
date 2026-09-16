@@ -14,8 +14,10 @@ import {
   ChevronRight,
   ShieldCheck,
   Send,
-  Eye
+  Eye,
+  FileSpreadsheet
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface LiveMonitoringViewProps {
   initialExamId?: string;
@@ -211,6 +213,55 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
 
+  // Export to Excel (Nama, NISN, Kelas, Nilai)
+  const handleExportExcel = () => {
+    if (!selectedExam) {
+      alert('Pilih ujian terlebih dahulu.');
+      return;
+    }
+    if (participants.length === 0) {
+      alert('Belum ada data peserta pada sesi ujian ini untuk diexport.');
+      return;
+    }
+
+    const dataRows = participants.map((p, i) => {
+      const className = p.student?.class?.name || selectedExam.class?.name || '-';
+      const studentNisn = p.student?.nisn || p.student?.nis || '-';
+      const studentName = p.student?.profile?.full_name || 'Peserta';
+      const examScore = p.score !== undefined ? p.score : (p.status === 'submitted' || p.status === 'force_submitted' ? 0 : 'Belum Selesai');
+      const statusText = p.status === 'submitted' || p.status === 'force_submitted'
+        ? (p.passed ? 'LULUS' : 'REMEDIAL')
+        : (p.status === 'in_progress' ? 'SEDANG MENGERJAKAN' : 'BELUM MULAI');
+
+      return {
+        'No': i + 1,
+        'Nama Siswa': studentName,
+        'NISN': studentNisn,
+        'Kelas': className,
+        'Nilai': examScore,
+        'Status Ujian': statusText,
+        'Pelanggaran Integritas': p.cheat_warning_count || 0,
+        'Waktu Selesai': p.finish_time ? new Date(p.finish_time).toLocaleString('id-ID') : '-'
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataRows);
+    ws['!cols'] = [
+      { wch: 6 },  // No
+      { wch: 30 }, // Nama Siswa
+      { wch: 20 }, // NISN
+      { wch: 16 }, // Kelas
+      { wch: 12 }, // Nilai
+      { wch: 22 }, // Status Ujian
+      { wch: 22 }, // Pelanggaran
+      { wch: 22 }  // Waktu Selesai
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Hasil Ujian');
+    const safeTitle = (selectedExam.title || 'CBT').replace(/[^a-zA-Z0-9_-]/g, '_');
+    XLSX.writeFile(wb, `Hasil_Ujian_${safeTitle}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
   // Metrics
   const totalCount = participants.length;
   const inProgressCount = participants.filter(p => p.status === 'in_progress').length;
@@ -248,22 +299,34 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
           </p>
         </div>
 
-        {/* Exam selector */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-bold text-slate-600 uppercase shrink-0">
-            Pilih Ujian:
-          </label>
-          <select
-            value={selectedExamId}
-            onChange={(e) => setSelectedExamId(e.target.value)}
-            className="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+        {/* Exam selector & Export Excel Button */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-600 uppercase shrink-0">
+              Pilih Ujian:
+            </label>
+            <select
+              value={selectedExamId}
+              onChange={(e) => setSelectedExamId(e.target.value)}
+              className="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              {exams.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.title} ({ex.class?.name})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            id="btn-export-excel-live"
+            onClick={handleExportExcel}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition active:scale-95 shrink-0 cursor-pointer"
+            title="Export Rekap Nilai Siswa ke Format Excel"
           >
-            {exams.map((ex) => (
-              <option key={ex.id} value={ex.id}>
-                {ex.title} ({ex.class?.name})
-              </option>
-            ))}
-          </select>
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Export Hasil Excel</span>
+          </button>
         </div>
       </div>
 
@@ -378,8 +441,8 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
                               <p className="font-bold text-slate-900">
                                 {p.student?.profile?.full_name || 'Peserta'}
                               </p>
-                              <p className="text-[11px] text-slate-400 font-mono">
-                                NIS: {p.student?.nis || '-'}
+                              <p className="text-[11px] text-slate-500 font-mono">
+                                NISN: <span className="text-slate-800 font-bold">{p.student?.nisn || p.student?.nis || '-'}</span> • Kelas: <span className="text-brand-600 font-bold">{p.student?.class?.name || selectedExam?.class?.name || '-'}</span>
                               </p>
                             </div>
                           </div>

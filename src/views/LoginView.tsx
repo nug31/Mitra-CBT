@@ -48,14 +48,25 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Load available classes
+// 4 Classes required for upcoming CBT exam
+const ALLOWED_EXAM_CLASSES: ClassRoom[] = [
+  { id: 'cls-tkr-1', name: 'X TKR 1', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-2', name: 'X TKR 2', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-1-03', name: 'X TKR 1 03', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+  { id: 'cls-tkr-2-03', name: 'X TKR 2 03', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+];
+
+  // Load available classes (restricted to the 4 exam classes)
   useEffect(() => {
     if (examIdParam) sessionStorage.setItem('qr_exam_id', examIdParam);
     if (pinParam) sessionStorage.setItem('qr_exam_pin', pinParam);
 
     db.getClasses().then(cls => {
-      setClasses(cls);
-      if (cls.length > 0) setSelectedClassId(cls[0].id);
+      const targetNames = ['X TKR 1', 'X TKR 2', 'X TKR 1 03', 'X TKR 2 03'];
+      const filtered = cls.filter(c => targetNames.includes(c.name));
+      const finalClasses = filtered.length > 0 ? filtered : ALLOWED_EXAM_CLASSES;
+      setClasses(finalClasses);
+      if (finalClasses.length > 0) setSelectedClassId(finalClasses[0].id);
     });
   }, [examIdParam, pinParam]);
 
@@ -243,7 +254,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     className="w-full pl-10 pr-4 py-3 sm:py-3 rounded-xl border border-slate-300 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white appearance-none"
                   >
                     {classes.map(c => (
-                      <option key={c.id} value={c.id}>{c.name} — {c.major}</option>
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>

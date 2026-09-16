@@ -145,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           profile_id: guestProfileId,
           nis: cleanNisn,
           nisn: cleanNisn,
-          class_id: classId || 'cls-tkr-10',
+          class_id: classId || 'cls-tkr-1',
           status: 'active',
           profile: guestProfile
         };
@@ -170,17 +170,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key: 'students', data: existingStudents })
         }).catch(() => {});
-      } else if (displayName && foundStudent.profile) {
-        // Student found in DB: update name if user provided a more specific name
-        // (in case the stored name is generic or different)
-        foundStudent = {
-          ...foundStudent,
-          profile: {
-            ...foundStudent.profile,
-            full_name: displayName
-          }
-        };
+      } else {
+        if (classId) {
+          foundStudent = {
+            ...foundStudent,
+            class_id: classId
+          };
+        }
+        if (displayName && foundStudent.profile) {
+          // Student found in DB: update name if user provided a more specific name
+          foundStudent = {
+            ...foundStudent,
+            profile: {
+              ...foundStudent.profile,
+              full_name: displayName
+            }
+          };
+        }
       }
+
+      // Attach class details
+      const classes = await db.getClasses();
+      const studentClass = classes.find(c => c.id === foundStudent!.class_id);
+      foundStudent = {
+        ...foundStudent,
+        class: studentClass
+      };
 
       const profiles = await db.getProfiles();
       const profile = profiles.find(p => p.id === foundStudent!.profile_id)
@@ -199,7 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         : profile;
 
       setCurrentUser(finalProfile);
-      setCurrentStudent({ ...foundStudent, profile: finalProfile });
+      setCurrentStudent({ ...foundStudent, class: studentClass, profile: finalProfile });
       setCurrentTeacher(null);
       setRole('siswa');
       localStorage.setItem('mitracbt_active_role', 'siswa');
