@@ -69,110 +69,95 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
       }
     });
 
-    // Supabase Realtime Presence Listener across all connected devices
-    const channel = getRealtimeChannel();
-    let unsubPresence: (() => void) | undefined;
+    // Listen to Presence updates dispatched safely through realtimeBus
+    const unsubPresence = realtimeBus.subscribe('presence_synced', (activePresences: any[]) => {
+      try {
+        if (!Array.isArray(activePresences)) return;
+        const liveParticipants: ExamParticipant[] = [];
 
-    if (channel) {
-      const syncFromPresence = () => {
-        try {
-          const state = channel.presenceState();
-          const liveParticipants: ExamParticipant[] = [];
+        activePresences.forEach((p: any) => {
+          if (!p.student_name && !p.student_id) return;
+          if (!isMatchingExam(p.exam_id, p.exam_title)) return;
 
-          Object.values(state).forEach((presList: any) => {
-            presList.forEach((p: any) => {
-              if (!p.student_name && !p.student_id) return;
-              if (!isMatchingExam(p.exam_id, p.exam_title)) return;
-
-              liveParticipants.push({
-                id: p.participant_id || ('part-' + p.student_id),
-                exam_id: p.exam_id || selectedExamId,
-                student_id: p.student_id,
-                status: p.status || 'in_progress',
-                start_time: p.start_time || new Date().toISOString(),
-                remaining_seconds: p.remaining_seconds,
-                tab_switch_count: p.tab_switch_count || 0,
-                cheat_warning_count: p.cheat_warning_count || 0,
-                student: {
-                  id: p.student_id,
-                  profile_id: 'prof-' + p.student_id,
-                  class_id: 'cls-tkr-12',
-                  status: 'active',
-                  nis: p.student_nis || p.student_id,
-                  profile: {
-                    id: 'prof-' + p.student_id,
-                    email: `${p.student_nis || p.student_id}@siswa.mitracbt.id`,
-                    full_name: p.student_name,
-                    role: 'siswa',
-                    created_at: ''
-                  },
-                  class: {
-                    id: 'cls-tkr-12',
-                    name: p.class_name || 'XII TKR',
-                    grade: 'XII',
-                    major: 'TKR',
-                    academic_year: '2024/2025'
-                  }
-                },
-                exam: exams.find(e => e.id === p.exam_id) || {
-                  id: p.exam_id,
-                  title: p.exam_title || 'Ujian Engine',
-                  duration_minutes: 90,
-                  question_count: p.total_questions || 25,
-                  kkm: 75,
-                  pin_code: 'NC5NZ',
-                  status: 'active',
-                  academic_year: '2024/2025',
-                  semester: 'Ganjil',
-                  start_time: '',
-                  end_time: '',
-                  assessment_type_id: '',
-                  subject_id: '',
-                  class_id: '',
-                  teacher_id: '',
-                  randomize_questions: true,
-                  randomize_options: true,
-                  allow_backward: true,
-                  fullscreen_mode: true,
-                  single_attempt: true,
-                  show_results_immediately: false,
-                  show_explanation: false
-                }
-              });
-            });
+          liveParticipants.push({
+            id: p.participant_id || ('part-' + p.student_id),
+            exam_id: p.exam_id || selectedExamId,
+            student_id: p.student_id,
+            status: p.status || 'in_progress',
+            start_time: p.start_time || new Date().toISOString(),
+            remaining_seconds: p.remaining_seconds,
+            tab_switch_count: p.tab_switch_count || 0,
+            cheat_warning_count: p.cheat_warning_count || 0,
+            student: {
+              id: p.student_id,
+              profile_id: 'prof-' + p.student_id,
+              class_id: 'cls-tkr-12',
+              status: 'active',
+              nis: p.student_nis || p.student_id,
+              profile: {
+                id: 'prof-' + p.student_id,
+                email: `${p.student_nis || p.student_id}@siswa.mitracbt.id`,
+                full_name: p.student_name,
+                role: 'siswa',
+                created_at: ''
+              },
+              class: {
+                id: 'cls-tkr-12',
+                name: p.class_name || 'XII TKR',
+                grade: 'XII',
+                major: 'TKR',
+                academic_year: '2024/2025'
+              }
+            },
+            exam: exams.find(e => e.id === p.exam_id) || {
+              id: p.exam_id,
+              title: p.exam_title || 'Ujian Engine',
+              duration_minutes: 90,
+              question_count: p.total_questions || 25,
+              kkm: 75,
+              pin_code: 'NC5NZ',
+              status: 'active',
+              academic_year: '2024/2025',
+              semester: 'Ganjil',
+              start_time: '',
+              end_time: '',
+              assessment_type_id: '',
+              subject_id: '',
+              class_id: '',
+              teacher_id: '',
+              randomize_questions: true,
+              randomize_options: true,
+              allow_backward: true,
+              fullscreen_mode: true,
+              single_attempt: true,
+              show_results_immediately: false,
+              show_explanation: false
+            }
           });
+        });
 
-          if (liveParticipants.length > 0) {
-            setParticipants(prev => {
-              const map = new Map(prev.map(item => [item.id, item]));
-              liveParticipants.forEach(lp => {
-                const existing = map.get(lp.id);
-                map.set(lp.id, { ...existing, ...lp });
-              });
-              return Array.from(map.values());
+        if (liveParticipants.length > 0) {
+          setParticipants(prev => {
+            const map = new Map(prev.map(item => [item.id, item]));
+            liveParticipants.forEach(lp => {
+              const existing = map.get(lp.id);
+              map.set(lp.id, { ...existing, ...lp });
             });
-          }
-        } catch (err) {
-          console.error('Error syncing presence:', err);
+            return Array.from(map.values());
+          });
         }
-      };
+      } catch (err) {
+        console.error('Error handling presence_synced:', err);
+      }
+    });
 
-      channel.on('presence', { event: 'sync' }, syncFromPresence);
-      channel.on('presence', { event: 'join' }, syncFromPresence);
-      channel.on('presence', { event: 'leave' }, syncFromPresence);
-
-      // Ping all active students immediately upon entering monitoring
-      realtimeBus.emit('ping_active_students', { requested_by: 'teacher' });
-
-      unsubPresence = () => {
-        // cleanup presence listeners
-      };
-    }
+    // Ping active students immediately
+    realtimeBus.emit('ping_active_students', { requested_by: 'teacher' });
 
     return () => {
       unsubPart();
       unsubEvent();
-      if (unsubPresence) unsubPresence();
+      unsubPresence();
     };
   }, [selectedExamId, exams]);
 

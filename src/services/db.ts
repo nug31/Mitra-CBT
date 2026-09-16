@@ -102,6 +102,42 @@ if (supabase) {
   try {
     realtimeChannel = supabase.channel('mitracbt-live-room');
     realtimeChannel
+      .on('presence', { event: 'sync' }, () => {
+        try {
+          const state = realtimeChannel.presenceState();
+          const activeList: any[] = [];
+          Object.values(state).forEach((items: any) => {
+            items.forEach((p: any) => {
+              if (p.student_id || p.student_name) activeList.push(p);
+            });
+          });
+          realtimeBus.emit('presence_synced', activeList, false);
+        } catch (e) {}
+      })
+      .on('presence', { event: 'join' }, () => {
+        try {
+          const state = realtimeChannel.presenceState();
+          const activeList: any[] = [];
+          Object.values(state).forEach((items: any) => {
+            items.forEach((p: any) => {
+              if (p.student_id || p.student_name) activeList.push(p);
+            });
+          });
+          realtimeBus.emit('presence_synced', activeList, false);
+        } catch (e) {}
+      })
+      .on('presence', { event: 'leave' }, () => {
+        try {
+          const state = realtimeChannel.presenceState();
+          const activeList: any[] = [];
+          Object.values(state).forEach((items: any) => {
+            items.forEach((p: any) => {
+              if (p.student_id || p.student_name) activeList.push(p);
+            });
+          });
+          realtimeBus.emit('presence_synced', activeList, false);
+        } catch (e) {}
+      })
       .on('broadcast', { event: 'participant_updated' }, ({ payload }: any) => {
         if (!payload || !payload.id) return;
         const parts = getStorage<ExamParticipant[]>('participants', INITIAL_PARTICIPANTS);
