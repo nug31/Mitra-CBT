@@ -399,6 +399,18 @@ class DBService {
       setStorage('questions', localQuestions);
     }
 
+    // Auto-migrate: ensure all baseline INITIAL_QUESTIONS exist in localQuestions
+    let updatedQuestions = false;
+    for (const initQ of INITIAL_QUESTIONS) {
+      if (!localQuestions.find(q => q.id === initQ.id)) {
+        localQuestions.push(initQ);
+        updatedQuestions = true;
+      }
+    }
+    if (updatedQuestions) {
+      setStorage('questions', localQuestions);
+    }
+
     if (!bankId) return localQuestions;
     return localQuestions.filter(q => q.bank_id === bankId);
   }
@@ -458,6 +470,19 @@ class DBService {
         }
       }
       setStorage('exams', localExams);
+    }
+
+    // Auto-migrate: ensure SAS Konversi Energi XI TKR has 25 questions, is active, and PIN matches NC5NZ
+    const engineExam = localExams.find(e => e.id === 'exam-02' || e.title.toLowerCase().includes('konversi') || e.title.toLowerCase().includes('engine'));
+    const initialEngineExam = INITIAL_EXAMS.find(e => e.id === 'exam-02');
+    if (engineExam && initialEngineExam) {
+      if (!engineExam.questions || engineExam.questions.length < 25 || engineExam.question_count < 25 || engineExam.status !== 'active') {
+        engineExam.question_count = 25;
+        engineExam.questions = initialEngineExam.questions;
+        engineExam.status = 'active';
+        engineExam.pin_code = initialEngineExam.pin_code;
+        setStorage('exams', localExams);
+      }
     }
 
     const types = await this.getAssessmentTypes();

@@ -208,7 +208,7 @@ export const INITIAL_QUESTION_BANKS: QuestionBank[] = [
     description: 'Kumpulan butir soal termodinamika mesin, siklus motor 4-tak & 2-tak, dan sistem penunjang engine.',
     target_grades: ['X', 'XII'],
     created_at: '2024-08-05T09:00:00Z',
-    question_count: 5
+    question_count: 25
   }
 ];
 
@@ -354,6 +354,366 @@ export const INITIAL_QUESTIONS: Question[] = [
       { id: 'opt-08-c', option_label: 'C', content: 'Volume Langkah Piston (Displacement)', is_correct: false },
       { id: 'opt-08-d', option_label: 'D', content: 'Torsi Maksimum Mesin', is_correct: false }
     ]
+  },
+  {
+    id: 'q-09',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Komponen mekanik pada kepala silinder yang berfungsi untuk membuka dan menutup saluran masuk (intake port) dan saluran buang (exhaust port) secara presisi sesuai dengan siklus kerja mesin adalah ...',
+    explanation: 'Katup (Valve / Klep) bertugas membuka dan menutup saluran masuk bahan bakar/udara dan saluran gas buang.',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Mengidentifikasi komponen mekanisme katup kepala silinder',
+    created_at: '2024-08-08T12:00:00Z',
+    options: [
+      { id: 'opt-09-a', option_label: 'A', content: 'Katup (Valve / Klep Mesin)', is_correct: true },
+      { id: 'opt-09-b', option_label: 'B', content: 'Piston & Batang Torak', is_correct: false },
+      { id: 'opt-09-c', option_label: 'C', content: 'Injektor Bahan Bakar', is_correct: false },
+      { id: 'opt-09-d', option_label: 'D', content: 'Busi Pengapian', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-10',
+    bank_id: 'bank-02',
+    material_id: 'mat-06',
+    question_type: 'pilihan_ganda',
+    content: 'Pada motor bensin 2-langkah (2-tak), satu siklus kerja pembakaran yang menghasilkan tenaga diselesaikan dalam berapa kali putaran poros engkol (crankshaft)?',
+    explanation: 'Motor 2-tak menyelesaikan 1 siklus kerja dalam 2 langkah gerakan piston yang setara dengan 1 putaran penuh poros engkol (360 derajat).',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Menjelaskan prinsip kerja motor bakar 2 langkah',
+    created_at: '2024-08-08T12:15:00Z',
+    options: [
+      { id: 'opt-10-a', option_label: 'A', content: '1 Putaran Poros Engkol (360°)', is_correct: true },
+      { id: 'opt-10-b', option_label: 'B', content: '2 Putaran Poros Engkol (720°)', is_correct: false },
+      { id: 'opt-10-c', option_label: 'C', content: '4 Putaran Poros Engkol (1440°)', is_correct: false },
+      { id: 'opt-10-d', option_label: 'D', content: 'Setengah Putaran Poros Engkol (180°)', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-11',
+    bank_id: 'bank-02',
+    material_id: 'mat-07',
+    question_type: 'pilihan_ganda',
+    content: 'Pada tutup radiator (radiator cap) terdapat katup pengaman. Katup yang bertugas menyalurkan kelebihan cairan pendingin ke tangki reservoir saat tekanan sistem pendingin melebihi batas standar adalah ...',
+    explanation: 'Katup Pelepas (Relief / Pressure Valve) terbuka ketika tekanan air pendingin melebihi 0.9 - 1.1 bar untuk mengalirkan air panas ke reservoir.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Memahami cara kerja tutup radiator bertekanan',
+    created_at: '2024-08-08T12:30:00Z',
+    options: [
+      { id: 'opt-11-a', option_label: 'A', content: 'Relief Valve (Katup Pelepas Tekanan)', is_correct: true },
+      { id: 'opt-11-b', option_label: 'B', content: 'Vacuum Valve (Katup Vakum)', is_correct: false },
+      { id: 'opt-11-c', option_label: 'C', content: 'Bypass Valve (Katup Pintas)', is_correct: false },
+      { id: 'opt-11-d', option_label: 'D', content: 'Thermostat Valve', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-12',
+    bank_id: 'bank-02',
+    material_id: 'mat-07',
+    question_type: 'pg_kompleks',
+    content: 'Pilihlah DUA atau LEBIH fungsi utama dari oli mesin (pelumas) pada kendaraan otomotif:',
+    explanation: 'Fungsi oli mesin mencakup pelumasan (lubricating), pendinginan (cooling), perapat kompresi (sealing), dan pembersih kotoran sisa gesekan/karbon (cleaning).',
+    weight: 2.5,
+    difficulty: 'sedang',
+    competency: 'Menganalisis fungsi sistem pelumasan mesin',
+    created_at: '2024-08-08T12:45:00Z',
+    options: [
+      { id: 'opt-12-a', option_label: 'A', content: 'Mengurangi gesekan dan keausan antar logam yang bergerak', is_correct: true },
+      { id: 'opt-12-b', option_label: 'B', content: 'Membantu mendinginkan komponen mesin yang dilalui oli', is_correct: true },
+      { id: 'opt-12-c', option_label: 'C', content: 'Sebagai perapat (sealing) antara dinding silinder dan ring piston', is_correct: true },
+      { id: 'opt-12-d', option_label: 'D', content: 'Membakar campuran bahan bakar di ruang bakar', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-13',
+    bank_id: 'bank-02',
+    material_id: 'mat-06',
+    question_type: 'pilihan_ganda',
+    content: 'Perbedaan paling mendasar dalam proses penyalaan bahan bakar antara motor bensin dan motor diesel adalah ...',
+    explanation: 'Motor bensin menggunakan busi (spark ignition), sedangkan motor diesel mengandalkan suhu tinggi udara hasil kompresi tinggi (compression ignition).',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Membedakan karakteristik motor bensin dan diesel',
+    created_at: '2024-08-08T13:00:00Z',
+    options: [
+      { id: 'opt-13-a', option_label: 'A', content: 'Motor diesel menyala akibat kompresi udara tinggi tanpa busi, motor bensin menyala dengan loncatan bunga api busi', is_correct: true },
+      { id: 'opt-13-b', option_label: 'B', content: 'Motor bensin memiliki rasio kompresi jauh lebih tinggi dibanding motor diesel', is_correct: false },
+      { id: 'opt-13-c', option_label: 'C', content: 'Motor diesel menggunakan karburator untuk mencampur bahan bakar', is_correct: false },
+      { id: 'opt-13-d', option_label: 'D', content: 'Motor bensin tidak memerlukan oli mesin untuk pelumasan', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-14',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Pada sistem Electronic Fuel Injection (EFI), sensor yang bertugas mendeteksi tingkat kevakuman atau tekanan udara di intake manifold untuk menentukan suplai bahan bakar dasar adalah ...',
+    explanation: 'Sensor MAP (Manifold Absolute Pressure) mengukur tekanan udara absolut pada saluran masuk (intake manifold).',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Mengidentifikasi sensor-sensor pada sistem EFI otomotif',
+    created_at: '2024-08-08T13:15:00Z',
+    options: [
+      { id: 'opt-14-a', option_label: 'A', content: 'MAP (Manifold Absolute Pressure) Sensor', is_correct: true },
+      { id: 'opt-14-b', option_label: 'B', content: 'ECT (Engine Coolant Temperature) Sensor', is_correct: false },
+      { id: 'opt-14-c', option_label: 'C', content: 'TPS (Throttle Position Sensor)', is_correct: false },
+      { id: 'opt-14-d', option_label: 'D', content: 'O2 (Oxygen) Sensor', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-15',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Pada piston motor 4-tak terdapat 3 buah ring piston. Ring yang berada di alur paling bawah (posisi ketiga) dan bertugas mengikis oli berlebih pada dinding silinder adalah ...',
+    explanation: 'Ring oli (oil scraper ring) bertugas menyapu kelebihan oli dari dinding silinder agar tidak ikut masuk dan terbakar di ruang bakar.',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Mengenal konstruksi dan fungsi ring piston',
+    created_at: '2024-08-08T13:30:00Z',
+    options: [
+      { id: 'opt-15-a', option_label: 'A', content: 'Ring Oli (Oil Control Ring)', is_correct: true },
+      { id: 'opt-15-b', option_label: 'B', content: 'Ring Kompresi Nomor 1 (Top Ring)', is_correct: false },
+      { id: 'opt-15-c', option_label: 'C', content: 'Ring Kompresi Nomor 2 (Second Ring)', is_correct: false },
+      { id: 'opt-15-d', option_label: 'D', content: 'Snap Ring Pengunci Pin Piston', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-16',
+    bank_id: 'bank-02',
+    material_id: 'mat-07',
+    question_type: 'pilihan_ganda',
+    content: 'Katup termostat (thermostat) pada sistem pendingin mesin umumnya mulai membuka saat suhu air pendingin mesin mencapai kisaran ...',
+    explanation: 'Thermostat mulai membuka pada suhu kerja standar mesin sekitar 80°C hingga 85°C dan membuka penuh pada sekitar 95°C.',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Memahami temperatur kerja termostat pendingin mesin',
+    created_at: '2024-08-08T13:45:00Z',
+    options: [
+      { id: 'opt-16-a', option_label: 'A', content: '80°C - 85°C', is_correct: true },
+      { id: 'opt-16-b', option_label: 'B', content: '40°C - 50°C', is_correct: false },
+      { id: 'opt-16-c', option_label: 'C', content: '110°C - 120°C', is_correct: false },
+      { id: 'opt-16-d', option_label: 'D', content: '20°C - 30°C', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-17',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Piringan baja pejal dan berat yang terpasang di ujung belakang poros engkol (crankshaft) yang bertugas menyimpan energi inersia putar dan meratakan putaran poros engkol adalah ...',
+    explanation: 'Flywheel (roda gila / roda penerus) memanfaatkan momen inersia untuk menjaga putaran mesin tetap halus dan seimbang.',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Menjelaskan fungsi Flywheel pada mesin otomotif',
+    created_at: '2024-08-08T14:00:00Z',
+    options: [
+      { id: 'opt-17-a', option_label: 'A', content: 'Flywheel (Roda Penerus / Roda Gila)', is_correct: true },
+      { id: 'opt-17-b', option_label: 'B', content: 'Harmonic Damper Pulley', is_correct: false },
+      { id: 'opt-17-c', option_label: 'C', content: 'Connecting Rod (Batang Torak)', is_correct: false },
+      { id: 'opt-17-d', option_label: 'D', content: 'Camshaft Gear', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-18',
+    bank_id: 'bank-02',
+    material_id: 'mat-06',
+    question_type: 'pilihan_ganda',
+    content: 'Urutan pengapian (Firing Order - FO) yang paling umum dan standar diaplikasikan pada mesin mobil bensin 4 silinder segaris (in-line 4) adalah ...',
+    explanation: 'Urutan pengapian 1 - 3 - 4 - 2 adalah konfigurasi paling standar untuk menjaga keseimbangan momen putar mesin 4 silinder.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Menentukan Firing Order (FO) mesin 4 silinder segaris',
+    created_at: '2024-08-08T14:15:00Z',
+    options: [
+      { id: 'opt-18-a', option_label: 'A', content: '1 - 3 - 4 - 2', is_correct: true },
+      { id: 'opt-18-b', option_label: 'B', content: '1 - 2 - 3 - 4', is_correct: false },
+      { id: 'opt-18-c', option_label: 'C', content: '4 - 3 - 2 - 1', is_correct: false },
+      { id: 'opt-18-d', option_label: 'D', content: '1 - 4 - 3 - 2', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-19',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Apabila sensor Crankshaft Position (CKP Sensor) rusak atau soketnya lepas pada mobil EFI modern, gejala yang langsung dialami mesin adalah ...',
+    explanation: 'Sensor CKP adalah referensi utama ECU untuk mengetahui putaran dan posisi piston; tanpa sinyal CKP, ECU tidak akan menyemprotkan bensin dan tidak memicu api busi (mesin mogok total).',
+    weight: 2.0,
+    difficulty: 'sulit',
+    competency: 'Mendiagnosis kerusakan sistem manajemen mesin EFI',
+    created_at: '2024-08-08T14:30:00Z',
+    options: [
+      { id: 'opt-19-a', option_label: 'A', content: 'Mesin tidak dapat hidup sama sekali saat distarter (starter berputar tetapi tidak ada pengapian & injeksi)', is_correct: true },
+      { id: 'opt-19-b', option_label: 'B', content: 'Mesin tetap hidup normal namun lampu kabin mati', is_correct: false },
+      { id: 'opt-19-c', option_label: 'C', content: 'Air radiator mendidih dengan cepat', is_correct: false },
+      { id: 'opt-19-d', option_label: 'D', content: 'Kipas radiator berputar dengan arah terbalik', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-20',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Jika teknisi melakukan penyetelan celah katup (valve clearance) yang terlalu rapat atau bahkan tanpa celah sama sekali, dampak negatif yang terjadi saat mesin mencapai suhu kerja adalah ...',
+    explanation: 'Saat mesin panas, batang katup memuai memanjang. Jika celah terlalu rapat, katup akan terdorong terbuka sedikit sehingga kompresi bocor dan performa mesin anjlok.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Menganalisis dampak penyetelan celah katup mesin',
+    created_at: '2024-08-08T14:45:00Z',
+    options: [
+      { id: 'opt-20-a', option_label: 'A', content: 'Katup tidak menutup rapat saat panas sehingga terjadi kebocoran kompresi dan kehilangan tenaga', is_correct: true },
+      { id: 'opt-20-b', option_label: 'B', content: 'Timbul bunyi gemeretak logam yang sangat keras dari kepala silinder', is_correct: false },
+      { id: 'opt-20-c', option_label: 'C', content: 'Bahan bakar menjadi jauh lebih boros hingga 3 kali lipat', is_correct: false },
+      { id: 'opt-20-d', option_label: 'D', content: 'Pompa oli berhenti berputar', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-21',
+    bank_id: 'bank-02',
+    material_id: 'mat-06',
+    question_type: 'pilihan_ganda',
+    content: 'Perangkat induksi paksa (forced induction) yang memanfaatkan energi gas buang knalpot untuk memutar turbin dan memampatkan udara segar ke ruang bakar dinamakan ...',
+    explanation: 'Turbocharger digerakkan oleh gas buang (berbeda dengan Supercharger yang digerakkan sabuk/belt puli mesin).',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Menjelaskan prinsip kerja Turbocharger pada motor bakar',
+    created_at: '2024-08-08T15:00:00Z',
+    options: [
+      { id: 'opt-21-a', option_label: 'A', content: 'Turbocharger', is_correct: true },
+      { id: 'opt-21-b', option_label: 'B', content: 'Alternator', is_correct: false },
+      { id: 'opt-21-c', option_label: 'C', content: 'Starter Motor', is_correct: false },
+      { id: 'opt-21-d', option_label: 'D', content: 'Power Steering Pump', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-22',
+    bank_id: 'bank-02',
+    material_id: 'mat-07',
+    question_type: 'pilihan_ganda',
+    content: 'Pada kode kekentalan oli multigrade SAE 10W-40, huruf "W" merupakan singkatan dari ...',
+    explanation: 'Huruf "W" berarti "Winter", yang menunjukkan tingkat kekentalan oli saat temperatur rendah/dingin.',
+    weight: 1.5,
+    difficulty: 'mudah',
+    competency: 'Membaca kode spesifikasi SAE minyak pelumas',
+    created_at: '2024-08-08T15:15:00Z',
+    options: [
+      { id: 'opt-22-a', option_label: 'A', content: 'Winter (Kondisi Suhu Dingin)', is_correct: true },
+      { id: 'opt-22-b', option_label: 'B', content: 'Water (Ketahanan terhadap Air)', is_correct: false },
+      { id: 'opt-22-c', option_label: 'C', content: 'Weight (Berat Jenis Pelumas)', is_correct: false },
+      { id: 'opt-22-d', option_label: 'D', content: 'Work (Daya Tahan Mesin Bekerja)', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-23',
+    bank_id: 'bank-02',
+    material_id: 'mat-08',
+    question_type: 'pilihan_ganda',
+    content: 'Komponen pada saluran pipa gas buang (exhaust system) yang berfungsi mengubah gas buang beracun (CO, HC, NOx) menjadi senyawa yang tidak berbahaya (CO2, H2O, N2) adalah ...',
+    explanation: 'Catalytic Converter (Katalisator gas buang) mengkatalisis gas beracun emisi knalpot menggunakan logam mulia platina/rhodium.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Mengidentifikasi sistem pereduksi emisi gas buang otomotif',
+    created_at: '2024-08-08T15:30:00Z',
+    options: [
+      { id: 'opt-23-a', option_label: 'A', content: 'Catalytic Converter (Katalis Gas Buang)', is_correct: true },
+      { id: 'opt-23-b', option_label: 'B', content: 'Muffler Silencer (Knalpot Peredam Suara)', is_correct: false },
+      { id: 'opt-23-c', option_label: 'C', content: 'Resonator Knalpot', is_correct: false },
+      { id: 'opt-23-d', option_label: 'D', content: 'Exhaust Manifold Header', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-24',
+    bank_id: 'bank-02',
+    material_id: 'mat-06',
+    question_type: 'pilihan_ganda',
+    content: 'Perbandingan massa campuran udara dan bahan bakar bensin ideal secara teoritis (perbandingan stoikiometri) untuk pembakaran paling sempurna adalah ...',
+    explanation: 'Rasio stoikiometri mesin bensin adalah 14,7 : 1 (14,7 gram udara untuk membakar habis 1 gram bensin).',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Memahami rasio campuran bahan bakar stoikiometri',
+    created_at: '2024-08-08T15:45:00Z',
+    options: [
+      { id: 'opt-24-a', option_label: 'A', content: '14,7 : 1 (Udara : Bensin)', is_correct: true },
+      { id: 'opt-24-b', option_label: 'B', content: '10,5 : 1 (Udara : Bensin)', is_correct: false },
+      { id: 'opt-24-c', option_label: 'C', content: '20,0 : 1 (Udara : Bensin)', is_correct: false },
+      { id: 'opt-24-d', option_label: 'D', content: '1 : 14,7 (Udara : Bensin)', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-25',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Alat ukur presisi yang digunakan bersama mikrometer luar (outside micrometer) untuk mengukur ketirusan dan keovalan diameter dinding silinder blok mesin adalah ...',
+    explanation: 'Cylinder Bore Gauge (CBG) digunakan khusus untuk mengukur keausan diameter dalam dinding silinder blok mesin.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Menerapkan alat ukur mekanik presisi otomotif',
+    created_at: '2024-08-08T16:00:00Z',
+    options: [
+      { id: 'opt-25-a', option_label: 'A', content: 'Cylinder Bore Gauge (CBG)', is_correct: true },
+      { id: 'opt-25-b', option_label: 'B', content: 'Dial Indicator Stand', is_correct: false },
+      { id: 'opt-25-c', option_label: 'C', content: 'Feeler Gauge (Bilah Ukur Celah)', is_correct: false },
+      { id: 'opt-25-d', option_label: 'D', content: 'Telescopic Gauge', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-26',
+    bank_id: 'bank-02',
+    material_id: 'mat-05',
+    question_type: 'pilihan_ganda',
+    content: 'Komponen timing drive (timing belt / timing chain) berfungsi untuk menyinkronkan putaran antara dua poros utama mesin, yaitu ...',
+    explanation: 'Timing belt / chain menyelaraskan putaran Poros Engkol (Crankshaft) dan Poros Nok (Camshaft) dengan rasio putaran 2:1.',
+    weight: 2.0,
+    difficulty: 'mudah',
+    competency: 'Menjelaskan mekanisme penghubung timing drive mesin',
+    created_at: '2024-08-08T16:15:00Z',
+    options: [
+      { id: 'opt-26-a', option_label: 'A', content: 'Poros Engkol (Crankshaft) dengan Poros Nok (Camshaft)', is_correct: true },
+      { id: 'opt-26-b', option_label: 'B', content: 'Poros Nok dengan Poros Propeller Gardan', is_correct: false },
+      { id: 'opt-26-c', option_label: 'C', content: 'Poros Engkol dengan Alternator Pengisian Aki', is_correct: false },
+      { id: 'opt-26-d', option_label: 'D', content: 'Piston Silinder 1 dengan Silinder 4', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-27',
+    bank_id: 'bank-02',
+    material_id: 'mat-06',
+    question_type: 'pilihan_ganda',
+    content: 'Gejala ketukan (knocking / detonasi) pada mesin bensin yang berbunyi seperti logam beradu saat pedal gas ditekan umumnya terjadi karena ...',
+    explanation: 'Knocking terjadi akibat pembakaran spontan campuran bahan bakar sebelum busi memercikkan api karena nilai oktan bahan bakar terlalu rendah.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Menganalisis fenomena knocking dan nilai oktan bahan bakar',
+    created_at: '2024-08-08T16:30:00Z',
+    options: [
+      { id: 'opt-27-a', option_label: 'A', content: 'Penggunaan bahan bakar dengan nilai oktan (RON) yang terlalu rendah dari spesifikasi kompresi mesin', is_correct: true },
+      { id: 'opt-27-b', option_label: 'B', content: 'Kandungan oli mesin yang terlalu penuh melebihi batas F', is_correct: false },
+      { id: 'opt-27-c', option_label: 'C', content: 'Suhu air radiator yang terlalu dingin di bawah 40°C', is_correct: false },
+      { id: 'opt-27-d', option_label: 'D', content: 'Kopling kendaraan yang mengalami selip saat menanjak', is_correct: false }
+    ]
+  },
+  {
+    id: 'q-28',
+    bank_id: 'bank-02',
+    material_id: 'mat-07',
+    question_type: 'pilihan_ganda',
+    content: 'Pompa oli (oil pump) tipe trochoid atau gear pada sistem pelumasan mesin kendaraan umumnya digerakkan secara langsung oleh putaran ...',
+    explanation: 'Pompa oli diputar langsung oleh Poros Engkol (Crankshaft) atau melalui perantara poros nok untuk mensirkulasikan pelumas bertekanan.',
+    weight: 2.0,
+    difficulty: 'sedang',
+    competency: 'Memahami mekanisme penggerak pompa oli mesin',
+    created_at: '2024-08-08T16:45:00Z',
+    options: [
+      { id: 'opt-28-a', option_label: 'A', content: 'Poros Engkol (Crankshaft)', is_correct: true },
+      { id: 'opt-28-b', option_label: 'B', content: 'Motor Dinamo Starter Listrik', is_correct: false },
+      { id: 'opt-28-c', option_label: 'C', content: 'Kipas Radiator Pendingin', is_correct: false },
+      { id: 'opt-28-d', option_label: 'D', content: 'Roda Roda Depan Kendaraan', is_correct: false }
+    ]
   }
 ];
 
@@ -395,10 +755,10 @@ export const INITIAL_EXAMS: Exam[] = [
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
-    start_time: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
-    end_time: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
+    start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    end_time: new Date(Date.now() + 12 * 3600 * 1000).toISOString(),
     duration_minutes: 90,
-    question_count: 5,
+    question_count: 25,
     kkm: 75,
     randomize_questions: true,
     randomize_options: true,
@@ -407,12 +767,12 @@ export const INITIAL_EXAMS: Exam[] = [
     single_attempt: true,
     show_results_immediately: false,
     show_explanation: false,
-    pin_code: 'ENG40',
-    status: 'scheduled',
+    pin_code: 'NC5NZ',
+    status: 'active',
     assessment_type: INITIAL_ASSESSMENT_TYPES[1],
     subject: INITIAL_SUBJECTS[1],
     class: INITIAL_CLASSES[1],
-    questions: [INITIAL_QUESTIONS[1], INITIAL_QUESTIONS[3], INITIAL_QUESTIONS[4], INITIAL_QUESTIONS[5], INITIAL_QUESTIONS[7]]
+    questions: INITIAL_QUESTIONS.filter(q => q.bank_id === 'bank-02')
   },
   {
     id: 'exam-03',

@@ -50,11 +50,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
 
   // Load available classes
   useEffect(() => {
+    if (examIdParam) sessionStorage.setItem('qr_exam_id', examIdParam);
+    if (pinParam) sessionStorage.setItem('qr_exam_pin', pinParam);
+
     db.getClasses().then(cls => {
       setClasses(cls);
       if (cls.length > 0) setSelectedClassId(cls[0].id);
     });
-  }, []);
+  }, [examIdParam, pinParam]);
 
   // Submit Siswa — password is always equal to NISN (default convention)
   const handleSubmitSiswa = async (e: React.FormEvent) => {

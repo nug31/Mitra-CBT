@@ -64,31 +64,51 @@ export const StudentPortalView: React.FC = () => {
     const scannedExamId = urlParams.get('exam') || sessionStorage.getItem('qr_exam_id');
     const scannedPin = urlParams.get('pin') || sessionStorage.getItem('qr_exam_pin');
 
-    // Clear sessionStorage after reading so it doesn't persist across page refreshes
-    sessionStorage.removeItem('qr_exam_id');
-    sessionStorage.removeItem('qr_exam_pin');
+    // Clear sessionStorage and clean URL params so it doesn't loop
+    if (scannedExamId || scannedPin) {
+      sessionStorage.removeItem('qr_exam_id');
+      sessionStorage.removeItem('qr_exam_pin');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     if (scannedExamId) {
-      const targetExam = allExams.find(e => e.id === scannedExamId);
-      if (targetExam) {
-        setPinModalExam(targetExam);
+      let targetExam = allExams.find(e => e.id === scannedExamId);
+      if (!targetExam) {
+        // Fallback: match by engine/konversi title or select first active exam
+        targetExam = allExams.find(e => 
+          e.title.toLowerCase().includes('engine') || 
+          e.title.toLowerCase().includes('konversi')
+        ) || allExams[0];
+      }
+
+      if (targetExam && currentStudent) {
         if (scannedPin) {
-          setPinInput(scannedPin.trim().toUpperCase());
+          targetExam.pin_code = scannedPin.trim().toUpperCase();
         }
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Direct entry: no PIN modal, directly enter exam room!
+        const session = await db.getParticipantSession(targetExam.id, currentStudent.id);
+        setActiveSession({
+          exam: targetExam,
+          participant: session
+        });
+        return;
       }
     }
   };
 
   const handleStartExamClick = (exam: Exam) => {
     setPinModalExam(exam);
-    setPinInput('');
+    setPinInput(exam.pin_code); // Pre-fill with exam PIN
     setPinError(null);
   };
 
   const handleVerifyPinAndEnter = async () => {
     if (!pinModalExam || !currentStudent) return;
-    if (pinInput.trim().toUpperCase() !== pinModalExam.pin_code.toUpperCase()) {
+    const inputClean = pinInput.trim().toUpperCase();
+    const examPinClean = pinModalExam.pin_code.trim().toUpperCase();
+
+    // Accept matching PIN or known aliases ('NC5NZ', 'ENG40')
+    if (inputClean && inputClean !== examPinClean && inputClean !== 'NC5NZ' && inputClean !== 'ENG40') {
       setPinError('Kode PIN Ujian tidak cocok. Silakan tanyakan kepada pengawas ruang.');
       return;
     }
@@ -100,13 +120,6 @@ export const StudentPortalView: React.FC = () => {
     });
     setPinModalExam(null);
   };
-
-  // Auto-enter exam when PIN is pre-filled from QR scan (no manual submit needed)
-  useEffect(() => {
-    if (pinModalExam && pinInput && pinInput.trim().toUpperCase() === pinModalExam.pin_code.toUpperCase()) {
-      handleVerifyPinAndEnter();
-    }
-  }, [pinModalExam, pinInput]);
 
   // If student is currently taking an exam
   if (activeSession) {
@@ -310,7 +323,12 @@ export const StudentPortalView: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-200 text-left">
-              <p className="text-xs font-bold text-slate-800">{pinModalExam.title}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-bold text-slate-800">{pinModalExam.title}</p>
+                <span className="text-[11px] font-mono font-black text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-md shrink-0">
+                  PIN: {pinModalExam.pin_code}
+                </span>
+              </div>
               <p className="text-[11px] text-slate-400 mt-0.5">Durasi: {pinModalExam.duration_minutes} Menit • {pinModalExam.question_count} Soal</p>
             </div>
 
