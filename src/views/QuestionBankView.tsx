@@ -308,7 +308,7 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
                       : 'bg-slate-100 text-slate-600'
                   }`}
                 >
-                  {b.question_count || 0} Soal
+                  {(isSelected ? questions.length : b.question_count) || 0} Soal
                 </span>
               </button>
             );
@@ -324,6 +324,9 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-black text-slate-900">{selectedBank.title}</span>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-100 text-slate-800 border border-slate-200">
+                  {questions.length} Butir Soal
+                </span>
                 {getBankGrades(selectedBank).map(g => (
                   <span
                     key={g}

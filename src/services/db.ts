@@ -447,7 +447,7 @@ class DBService {
   // Questions
   async getQuestions(bankId?: string): Promise<Question[]> {
     const serverQuestions = await fetchFromSyncServer<Question[]>('questions');
-    const localQuestions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
+    let localQuestions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
 
     if (serverQuestions && serverQuestions.length > 0) {
       for (const sq of serverQuestions) {
@@ -461,16 +461,18 @@ class DBService {
       setStorage('questions', localQuestions);
     }
 
-    // Auto-migrate: ensure all baseline INITIAL_QUESTIONS exist in localQuestions
-    let updatedQuestions = false;
-    for (const initQ of INITIAL_QUESTIONS) {
-      if (!localQuestions.find(q => q.id === initQ.id)) {
-        localQuestions.push(initQ);
-        updatedQuestions = true;
+    // Auto-clean: if bank-01 contains user-imported questions, purge old mock placeholder questions ('q-01', 'q-03', 'q-07')
+    const hasCustomQuestionsInBank1 = localQuestions.some(
+      q => q.bank_id === 'bank-01' && !['q-01', 'q-03', 'q-07'].includes(q.id)
+    );
+    if (hasCustomQuestionsInBank1) {
+      const cleaned = localQuestions.filter(
+        q => !(q.bank_id === 'bank-01' && ['q-01', 'q-03', 'q-07'].includes(q.id))
+      );
+      if (cleaned.length !== localQuestions.length) {
+        localQuestions = cleaned;
+        setStorage('questions', localQuestions);
       }
-    }
-    if (updatedQuestions) {
-      setStorage('questions', localQuestions);
     }
 
     if (!bankId) return localQuestions;
@@ -507,6 +509,14 @@ class DBService {
     }
 
     setStorage('questions', questions);
+
+    // Sync question bank counts
+    const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+    banks.forEach(b => {
+      b.question_count = questions.filter(item => item.bank_id === b.id).length;
+    });
+    setStorage('question_banks', banks);
+
     return saved;
   }
 
@@ -514,6 +524,28 @@ class DBService {
     let questions = await this.getQuestions();
     questions = questions.filter(q => q.id !== id);
     setStorage('questions', questions);
+
+    // Sync question bank counts immediately
+    const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+    banks.forEach(b => {
+      b.question_count = questions.filter(item => item.bank_id === b.id).length;
+    });
+    setStorage('question_banks', banks);
+
+    // Also update any exams referencing this question
+    const exams = getStorage<Exam[]>('exams', INITIAL_EXAMS);
+    let examsUpdated = false;
+    exams.forEach(ex => {
+      if (ex.questions && ex.questions.some(q => q.id === id)) {
+        ex.questions = ex.questions.filter(q => q.id !== id);
+        ex.question_count = ex.questions.length;
+        examsUpdated = true;
+      }
+    });
+    if (examsUpdated) {
+      setStorage('exams', exams);
+    }
+
     this.logAudit('DELETE_QUESTION', 'question', id, {});
   }
 
