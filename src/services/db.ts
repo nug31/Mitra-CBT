@@ -123,10 +123,29 @@ if (supabase) {
         }
         realtimeBus.emit('event_logged', payload, false);
       })
+      .on('broadcast', { event: 'ping_active_students' }, ({ payload }: any) => {
+        realtimeBus.emit('ping_active_students', payload, false);
+      })
+      .on('broadcast', { event: 'exam_updated' }, ({ payload }: any) => {
+        if (!payload || !payload.id) return;
+        const exams = getStorage<Exam[]>('exams', INITIAL_EXAMS);
+        const idx = exams.findIndex(e => e.id === payload.id);
+        if (idx >= 0) {
+          exams[idx] = { ...exams[idx], ...payload };
+        } else {
+          exams.push(payload);
+        }
+        localStorage.setItem(STORAGE_PREFIX + 'exams', JSON.stringify(exams));
+        realtimeBus.emit('exams_updated', payload, false);
+      })
       .subscribe();
   } catch (e) {
     console.error('Supabase broadcast channel failed:', e);
   }
+}
+
+export function getRealtimeChannel() {
+  return realtimeChannel;
 }
 
 class DBService {
@@ -473,7 +492,7 @@ class DBService {
     }
 
     // Auto-migrate: ensure SAS Konversi Energi XI TKR has 25 questions, is active, and PIN matches NC5NZ
-    const engineExam = localExams.find(e => e.id === 'exam-02' || e.title.toLowerCase().includes('konversi') || e.title.toLowerCase().includes('engine'));
+    const engineExam = localExams.find(e => e.id === 'exam-02' || e.title.toLowerCase().includes('konversi energi'));
     const initialEngineExam = INITIAL_EXAMS.find(e => e.id === 'exam-02');
     if (engineExam && initialEngineExam) {
       if (!engineExam.questions || engineExam.questions.length < 25 || engineExam.question_count < 25 || engineExam.status !== 'active') {
@@ -483,6 +502,20 @@ class DBService {
         engineExam.pin_code = initialEngineExam.pin_code;
         setStorage('exams', localExams);
       }
+    }
+
+    // Auto-migrate: ensure STS Dasar Konversi TKR (XII TKR) exists in localExams
+    let engine12 = localExams.find(e => e.id === 'exam-04' || e.title.toLowerCase().includes('dasar konversi'));
+    const initialEngine12 = INITIAL_EXAMS.find(e => e.id === 'exam-04');
+    if (!engine12 && initialEngine12) {
+      localExams.push(initialEngine12);
+      setStorage('exams', localExams);
+    } else if (engine12 && initialEngine12 && (!engine12.questions || engine12.questions.length < 25 || engine12.question_count < 25)) {
+      engine12.question_count = 25;
+      engine12.questions = initialEngine12.questions;
+      engine12.pin_code = initialEngine12.pin_code;
+      engine12.status = 'active';
+      setStorage('exams', localExams);
     }
 
     const types = await this.getAssessmentTypes();
@@ -532,6 +565,15 @@ class DBService {
 
     setStorage('exams', exams);
     realtimeBus.emit('exams_updated', saved);
+    if (realtimeChannel) {
+      try {
+        realtimeChannel.send({
+          type: 'broadcast',
+          event: 'exam_updated',
+          payload: saved
+        }).catch(() => {});
+      } catch (err) {}
+    }
     return saved;
   }
 

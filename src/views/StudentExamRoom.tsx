@@ -6,7 +6,7 @@ import {
   Answer, 
   ExamResult 
 } from '../types';
-import { db } from '../services/db';
+import { db, getRealtimeChannel, realtimeBus } from '../services/db';
 import { 
   Clock, 
   ChevronLeft, 
@@ -125,6 +125,52 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
       db.updateParticipantSession(participant.id, { remaining_seconds: remainingSeconds });
     }
   }, [remainingSeconds]);
+
+  // Realtime Supabase Presence Tracking for Teacher Live Monitoring
+  useEffect(() => {
+    const channel = getRealtimeChannel();
+    if (!channel) return;
+
+    const trackPresence = async () => {
+      try {
+        await channel.track({
+          participant_id: participant.id,
+          student_id: participant.student_id,
+          student_name: participant.student?.profile?.full_name || 'Siswa',
+          student_nis: participant.student?.nis || participant.student_id,
+          class_name: participant.student?.class?.name || exam.class?.name || 'XII TKR',
+          exam_id: exam.id,
+          exam_title: exam.title,
+          status: isForceSubmitted ? 'force_submitted' : (examResult ? 'submitted' : 'in_progress'),
+          remaining_seconds: remainingSeconds,
+          answered_count: Object.keys(answersMap).length,
+          total_questions: questions.length || 25,
+          tab_switch_count: participant.tab_switch_count || 0,
+          cheat_warning_count: violationCount,
+          last_active: new Date().toISOString()
+        });
+      } catch (e) {
+        // Presence track fallback
+      }
+    };
+
+    trackPresence();
+    const interval = setInterval(trackPresence, 4000);
+    const unsubPing = realtimeBus.subscribe('ping_active_students', () => {
+      trackPresence();
+      db.updateParticipantSession(participant.id, {
+        status: isForceSubmitted ? 'force_submitted' : (examResult ? 'submitted' : 'in_progress'),
+        remaining_seconds: remainingSeconds,
+        cheat_warning_count: violationCount
+      });
+    });
+
+    return () => {
+      clearInterval(interval);
+      unsubPing();
+      try { channel.untrack(); } catch (e) {}
+    };
+  }, [remainingSeconds, answersMap, violationCount, isForceSubmitted, examResult, exam.id, participant.id, questions.length]);
 
   const initExamSession = async () => {
     let qList = exam.questions || (await db.getQuestions());

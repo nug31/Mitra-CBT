@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, realtimeBus } from '../services/db';
+import { db, realtimeBus, getRealtimeChannel } from '../services/db';
 import { Exam, ExamParticipant, ExamEvent } from '../types';
 import { 
   Activity, 
@@ -32,6 +32,17 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     loadExams();
   }, []);
 
+  const isMatchingExam = (examId: string, examTitle?: string) => {
+    if (!selectedExamId) return true;
+    if (examId === selectedExamId) return true;
+    const cur = exams.find(e => e.id === selectedExamId);
+    const curTitle = (cur?.title || '').toLowerCase();
+    const otherTitle = (examTitle || '').toLowerCase();
+    const isCurEngine = curTitle.includes('konversi') || curTitle.includes('engine') || curTitle.includes('motor bakar');
+    const isOtherEngine = otherTitle.includes('konversi') || otherTitle.includes('engine') || otherTitle.includes('motor bakar') || examId === 'exam-02' || examId === 'exam-04';
+    return isCurEngine && isOtherEngine;
+  };
+
   useEffect(() => {
     if (selectedExamId) {
       loadExamSession(selectedExamId);
@@ -39,7 +50,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
 
     // Subscribe to realtime updates
     const unsubPart = realtimeBus.subscribe('participant_updated', (updated: ExamParticipant) => {
-      if (updated.exam_id === selectedExamId) {
+      if (isMatchingExam(updated.exam_id, updated.exam?.title)) {
         setParticipants(prev => {
           const idx = prev.findIndex(p => p.id === updated.id);
           if (idx >= 0) {
@@ -53,23 +64,127 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     });
 
     const unsubEvent = realtimeBus.subscribe('event_logged', (ev: ExamEvent) => {
-      if (ev.exam_id === selectedExamId) {
+      if (isMatchingExam(ev.exam_id, ev.details?.exam_title)) {
         setEvents(prev => [ev, ...prev]);
       }
     });
 
+    // Supabase Realtime Presence Listener across all connected devices
+    const channel = getRealtimeChannel();
+    let unsubPresence: (() => void) | undefined;
+
+    if (channel) {
+      const syncFromPresence = () => {
+        try {
+          const state = channel.presenceState();
+          const liveParticipants: ExamParticipant[] = [];
+
+          Object.values(state).forEach((presList: any) => {
+            presList.forEach((p: any) => {
+              if (!p.student_name && !p.student_id) return;
+              if (!isMatchingExam(p.exam_id, p.exam_title)) return;
+
+              liveParticipants.push({
+                id: p.participant_id || ('part-' + p.student_id),
+                exam_id: p.exam_id || selectedExamId,
+                student_id: p.student_id,
+                status: p.status || 'in_progress',
+                start_time: p.start_time || new Date().toISOString(),
+                remaining_seconds: p.remaining_seconds,
+                tab_switch_count: p.tab_switch_count || 0,
+                cheat_warning_count: p.cheat_warning_count || 0,
+                student: {
+                  id: p.student_id,
+                  profile_id: 'prof-' + p.student_id,
+                  class_id: 'cls-tkr-12',
+                  status: 'active',
+                  nis: p.student_nis || p.student_id,
+                  profile: {
+                    id: 'prof-' + p.student_id,
+                    email: `${p.student_nis || p.student_id}@siswa.mitracbt.id`,
+                    full_name: p.student_name,
+                    role: 'siswa',
+                    created_at: ''
+                  },
+                  class: {
+                    id: 'cls-tkr-12',
+                    name: p.class_name || 'XII TKR',
+                    grade: 'XII',
+                    major: 'TKR',
+                    academic_year: '2024/2025'
+                  }
+                },
+                exam: exams.find(e => e.id === p.exam_id) || {
+                  id: p.exam_id,
+                  title: p.exam_title || 'Ujian Engine',
+                  duration_minutes: 90,
+                  question_count: p.total_questions || 25,
+                  kkm: 75,
+                  pin_code: 'NC5NZ',
+                  status: 'active',
+                  academic_year: '2024/2025',
+                  semester: 'Ganjil',
+                  start_time: '',
+                  end_time: '',
+                  assessment_type_id: '',
+                  subject_id: '',
+                  class_id: '',
+                  teacher_id: '',
+                  randomize_questions: true,
+                  randomize_options: true,
+                  allow_backward: true,
+                  fullscreen_mode: true,
+                  single_attempt: true,
+                  show_results_immediately: false,
+                  show_explanation: false
+                }
+              });
+            });
+          });
+
+          if (liveParticipants.length > 0) {
+            setParticipants(prev => {
+              const map = new Map(prev.map(item => [item.id, item]));
+              liveParticipants.forEach(lp => {
+                const existing = map.get(lp.id);
+                map.set(lp.id, { ...existing, ...lp });
+              });
+              return Array.from(map.values());
+            });
+          }
+        } catch (err) {
+          console.error('Error syncing presence:', err);
+        }
+      };
+
+      channel.on('presence', { event: 'sync' }, syncFromPresence);
+      channel.on('presence', { event: 'join' }, syncFromPresence);
+      channel.on('presence', { event: 'leave' }, syncFromPresence);
+
+      // Ping all active students immediately upon entering monitoring
+      realtimeBus.emit('ping_active_students', { requested_by: 'teacher' });
+
+      unsubPresence = () => {
+        // cleanup presence listeners
+      };
+    }
+
     return () => {
       unsubPart();
       unsubEvent();
+      if (unsubPresence) unsubPresence();
     };
-  }, [selectedExamId]);
+  }, [selectedExamId, exams]);
 
   const loadExams = async () => {
     const exList = await db.getExams();
     setExams(exList);
     if (!selectedExamId && exList.length > 0) {
-      const active = exList.find(e => e.status === 'active') || exList[0];
-      setSelectedExamId(active.id);
+      // Prioritize engine / XII TKR exam
+      const engineExam = exList.find(e => e.title.includes('Dasar Konversi') || e.id === 'exam-04') ||
+                         exList.find(e => e.status === 'active') || 
+                         exList[0];
+      setSelectedExamId(engineExam.id);
     }
   };
 
@@ -78,8 +193,28 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
       db.getExamParticipants(examId),
       db.getEvents(examId)
     ]);
-    setParticipants(partList);
+
+    // Cross-merge engine participants if teacher is on an engine exam
+    let combinedParticipants = [...partList];
+    const curExam = exams.find(e => e.id === examId);
+    const isEngine = (curExam?.title || '').toLowerCase().includes('konversi') || (curExam?.title || '').toLowerCase().includes('engine');
+    if (isEngine) {
+      const otherIds = ['exam-02', 'exam-04'].filter(id => id !== examId);
+      for (const oid of otherIds) {
+        const otherParts = await db.getExamParticipants(oid);
+        for (const op of otherParts) {
+          if (!combinedParticipants.find(p => p.id === op.id)) {
+            combinedParticipants.push(op);
+          }
+        }
+      }
+    }
+
+    setParticipants(combinedParticipants);
     setEvents(evList);
+
+    // Ping all active students to instantly sync their state
+    realtimeBus.emit('ping_active_students', { examId });
   };
 
   const handleForceSubmit = async (participantId: string, studentName: string) => {
