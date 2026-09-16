@@ -572,7 +572,7 @@ class DBService {
         title: 'STS Gambar Teknik Otomotif (GTO) Kelas X',
         assessment_type_id: 'eval-01',
         subject_id: 'subj-01',
-        class_id: 'cls-tkr-1',
+        class_id: 'all',
         teacher_id: 'teacher-01',
         academic_year: '2024/2025',
         semester: 'Ganjil',
@@ -613,7 +613,9 @@ class DBService {
       ...e,
       assessment_type: types.find(t => t.id === e.assessment_type_id),
       subject: subjects.find(s => s.id === e.subject_id),
-      class: classes.find(c => c.id === e.class_id),
+      class: e.class_id === 'all'
+        ? { id: 'all', name: 'Semua Kelas', grade: 'X', major: 'TKR', academic_year: '2024/2025' }
+        : classes.find(c => c.id === e.class_id),
       questions: e.questions && e.questions.length > 0 ? e.questions : questions.slice(0, e.question_count)
     }));
   }
