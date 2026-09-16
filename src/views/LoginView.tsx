@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../services/db';
+import type { ClassRoom } from '../types';
 import { 
   Layers, 
   GraduationCap, 
@@ -12,7 +14,8 @@ import {
   ArrowRight,
   Info,
   ShieldCheck,
-  QrCode
+  QrCode,
+  School
 } from 'lucide-react';
 
 interface LoginViewProps {
@@ -33,6 +36,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   // Siswa Form
   const [nisn, setNisn] = useState('');
   const [namaLengkap, setNamaLengkap] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [classes, setClasses] = useState<ClassRoom[]>([]);
 
   // Guru/Admin Form
   const [teacherEmail, setTeacherEmail] = useState('');
@@ -43,13 +48,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Load available classes
+  useEffect(() => {
+    db.getClasses().then(cls => {
+      setClasses(cls);
+      if (cls.length > 0) setSelectedClassId(cls[0].id);
+    });
+  }, []);
+
   // Submit Siswa — password is always equal to NISN (default convention)
   const handleSubmitSiswa = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setLoading(true);
 
-    const res = await loginWithNisn(nisn, nisn, namaLengkap.trim());
+    const res = await loginWithNisn(nisn, nisn, namaLengkap.trim(), selectedClassId);
     setLoading(false);
 
     if (res.success) {
@@ -95,12 +108,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
             MITRA CBT
           </h1>
-          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-sky-400 font-bold mt-0.5">
-            Digital Assessment System SMK
-          </p>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-1 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
-            Platform asesmen digital kejuruan: STS, SAS, Remedial, Ulangan Harian, &amp; Ujian Teori Kejuruan
-          </p>
+
         </div>
 
         {/* Card Container */}
@@ -217,11 +225,32 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 </div>
               </div>
 
+              {/* Kelas Input */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Kelas <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <School className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <select
+                    id="input-kelas"
+                    required
+                    value={selectedClassId}
+                    onChange={(e) => setSelectedClassId(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 sm:py-3 rounded-xl border border-slate-300 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white appearance-none"
+                  >
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>{c.name} — {c.major}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               {/* Submit Button */}
               <button
                 id="btn-login-siswa"
                 type="submit"
-                disabled={loading || nisn.length < 5 || namaLengkap.trim().length < 3}
+                disabled={loading || nisn.length < 5 || namaLengkap.trim().length < 3 || !selectedClassId}
                 className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50"
               >
                 {loading ? (

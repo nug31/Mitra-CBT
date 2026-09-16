@@ -9,7 +9,7 @@ interface AuthContextType {
   role: Role;
   isLoading: boolean;
   login: (email: string, role?: Role) => Promise<boolean>;
-  loginWithNisn: (nisn: string, password: string, displayName?: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithNisn: (nisn: string, password: string, displayName?: string, classId?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithCredentials: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   switchRole: (newRole: Role) => Promise<void>;
@@ -109,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Student Login using NISN
-  const loginWithNisn = async (nisn: string, _password: string, displayName?: string): Promise<{ success: boolean; error?: string }> => {
+  const loginWithNisn = async (nisn: string, _password: string, displayName?: string, classId?: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
       const cleanNisn = nisn.trim();
@@ -145,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           profile_id: guestProfileId,
           nis: cleanNisn,
           nisn: cleanNisn,
-          class_id: 'cls-tkr-10',
+          class_id: classId || 'cls-tkr-10',
           status: 'active',
           profile: guestProfile
         };

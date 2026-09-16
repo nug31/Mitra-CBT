@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Question, QuestionOption, QuestionType, DifficultyLevel, Subject, SubjectMaterial } from '../../types';
 import { 
   X, 
@@ -7,7 +7,9 @@ import {
   Trash2, 
   Check, 
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Upload,
+  XCircle
 } from 'lucide-react';
 import { DIAGRAM_PROYEKSI_EROPA, DIAGRAM_SIKLUS_ENGINE, DIAGRAM_ETIKET } from '../../services/mockData';
 
@@ -57,6 +59,9 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Synchronize state whenever initialQuestion or isOpen changes
   useEffect(() => {
@@ -118,10 +123,37 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
         ]);
       }
       setError(null);
+      setImageUploadError(null);
+      setImageFileName('');
     }
   }, [isOpen, initialQuestion, materials]);
 
   if (!isOpen) return null;
+
+  // --- Image Upload Handler (max 200 KB) ---
+  const MAX_IMAGE_SIZE = 200 * 1024; // 200 KB in bytes
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageUploadError(null);
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      const sizekb = (file.size / 1024).toFixed(1);
+      setImageUploadError(`Ukuran file terlalu besar (${sizekb} KB). Maksimal 200 KB. Kompres gambar terlebih dahulu.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setImageUrl(result);
+      setImageFileName(file.name + ` (${(file.size / 1024).toFixed(1)} KB)`);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleOptionContentChange = (index: number, val: string) => {
     const next = [...options];
@@ -307,25 +339,58 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               <div className="flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-brand-600" />
                 <span className="text-xs font-bold text-slate-800">
-                  Lampiran Gambar Diagram Teknik (Penting untuk SMK)
+                  Lampiran Gambar / Diagram Teknik
                 </span>
               </div>
               {imageUrl && (
                 <button
                   type="button"
-                  onClick={() => setImageUrl('')}
-                  className="text-xs text-rose-600 hover:underline"
+                  onClick={() => {
+                    setImageUrl('');
+                    setImageFileName('');
+                    setImageUploadError(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="text-xs text-rose-600 hover:underline flex items-center gap-1"
                 >
-                  Hapus Gambar
+                  <XCircle className="w-3.5 h-3.5" /> Hapus Gambar
                 </button>
               )}
             </div>
+
+            {/* Upload Button Row */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              {/* File Upload */}
+              <label className="flex-1 cursor-pointer">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-dashed border-brand-300 bg-brand-50/50 hover:bg-brand-50 hover:border-brand-400 transition text-center justify-center">
+                  <Upload className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                  <span className="text-xs font-semibold text-brand-700">
+                    {imageFileName ? imageFileName : 'Upload Gambar (maks 200 KB)'}
+                  </span>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Upload Error */}
+            {imageUploadError && (
+              <div className="flex items-start gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>{imageUploadError}</span>
+              </div>
+            )}
 
             {/* Diagram Presets for SMK */}
             <div>
               <p className="text-[11px] text-slate-500 mb-1.5 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-amber-500" />
-                Pilih Diagram Teknik SMK Cepat:
+                Atau pilih Diagram Teknik SMK Cepat:
               </p>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -352,14 +417,18 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               </div>
             </div>
 
-            {/* Custom URL or upload */}
+            {/* Or paste URL */}
             <div className="flex gap-2">
               <input
                 type="text"
-                value={imageUrl.startsWith('data:') ? '[Diagram Vektor Terpasang]' : imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                value={imageUrl.startsWith('data:') ? '[Gambar Terupload]' : imageUrl}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  setImageFileName('');
+                }}
                 placeholder="Atau tempel URL gambar / diagram..."
                 className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
+                readOnly={imageUrl.startsWith('data:') && !!imageFileName}
               />
             </div>
 
