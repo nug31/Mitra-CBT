@@ -1,0 +1,1302 @@
+[
+  {
+    "id": "q-gto-01",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Fungsi utama gambar teknik dalam bidang otomotif adalah...",
+    "explanation": "Gambar teknik digunakan sebagai media komunikasi untuk menyampaikan bentuk, ukuran, dan informasi teknis suatu benda.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-1-a",
+        "option_label": "A",
+        "content": "Sebagai gambar hiasan",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-1-b",
+        "option_label": "B",
+        "content": "Sebagai media komunikasi teknik",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-1-c",
+        "option_label": "C",
+        "content": "Sebagai media promosi kendaraan",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-1-d",
+        "option_label": "D",
+        "content": "Sebagai gambar bebas",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-1-e",
+        "option_label": "E",
+        "content": "Sebagai penentu harga kendaraan",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-02",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Alat yang digunakan untuk membuat garis lurus pada gambar teknik adalah...",
+    "explanation": "Penggaris digunakan untuk membuat garis lurus dengan rapi dan sesuai kebutuhan gambar.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-2-a",
+        "option_label": "A",
+        "content": "Jangka",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-2-b",
+        "option_label": "B",
+        "content": "Penggaris",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-2-c",
+        "option_label": "C",
+        "content": "Busur derajat",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-2-d",
+        "option_label": "D",
+        "content": "Mal lingkaran",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-2-e",
+        "option_label": "E",
+        "content": "Penghapus",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-03",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Alat gambar yang digunakan untuk membuat lingkaran adalah...",
+    "explanation": "Jangka digunakan untuk membuat bentuk lingkaran dengan ukuran radius tertentu.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-3-a",
+        "option_label": "A",
+        "content": "Penggaris",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-3-b",
+        "option_label": "B",
+        "content": "Siku",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-3-c",
+        "option_label": "C",
+        "content": "Jangka",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-3-d",
+        "option_label": "D",
+        "content": "Mal huruf",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-3-e",
+        "option_label": "E",
+        "content": "Penghapus",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-04",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Pensil dengan kode H memiliki karakteristik...",
+    "explanation": "Pensil H memiliki karakteristik lebih keras sehingga cocok digunakan untuk garis tipis dan garis bantu.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-4-a",
+        "option_label": "A",
+        "content": "Lunak dan sangat hitam",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-4-b",
+        "option_label": "B",
+        "content": "Keras dan menghasilkan garis tipis",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-4-c",
+        "option_label": "C",
+        "content": "Tidak dapat digunakan menggambar",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-4-d",
+        "option_label": "D",
+        "content": "Digunakan untuk menghapus",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-4-e",
+        "option_label": "E",
+        "content": "Digunakan untuk membuat arsiran tebal",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-05",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Pensil dengan kode B biasanya menghasilkan garis yang...",
+    "explanation": "Pensil B lebih lunak dan menghasilkan garis yang lebih hitam dibandingkan pensil H.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-5-a",
+        "option_label": "A",
+        "content": "Tipis dan samar",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-5-b",
+        "option_label": "B",
+        "content": "Lebih hitam dan lunak",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-5-c",
+        "option_label": "C",
+        "content": "Tidak terlihat",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-5-d",
+        "option_label": "D",
+        "content": "Selalu putus-putus",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-5-e",
+        "option_label": "E",
+        "content": "Tidak dapat dihapus",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-06",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Garis kontinu tebal pada gambar teknik umumnya digunakan untuk menunjukkan...",
+    "explanation": "Garis kontinu tebal digunakan untuk menggambarkan sisi atau bagian benda yang terlihat.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-6-a",
+        "option_label": "A",
+        "content": "Bagian benda yang terlihat",
+        "is_correct": true,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-6-b",
+        "option_label": "B",
+        "content": "Bagian benda yang tersembunyi",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-6-c",
+        "option_label": "C",
+        "content": "Garis sumbu",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-6-d",
+        "option_label": "D",
+        "content": "Garis ukuran",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-6-e",
+        "option_label": "E",
+        "content": "Garis bantu",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-07",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Garis putus-putus pada gambar teknik digunakan untuk menunjukkan...",
+    "explanation": "Garis putus-putus digunakan untuk menunjukkan bagian benda yang berada di belakang atau tidak terlihat.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-7-a",
+        "option_label": "A",
+        "content": "Bagian benda yang terlihat",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-7-b",
+        "option_label": "B",
+        "content": "Bagian benda yang tidak terlihat",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-7-c",
+        "option_label": "C",
+        "content": "Garis ukuran",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-7-d",
+        "option_label": "D",
+        "content": "Garis sumbu",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-7-e",
+        "option_label": "E",
+        "content": "Garis potongan",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-08",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Garis sumbu pada gambar teknik berfungsi untuk menunjukkan...",
+    "explanation": "Garis sumbu digunakan untuk menunjukkan pusat lingkaran, sumbu simetri, atau sumbu suatu komponen.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-8-a",
+        "option_label": "A",
+        "content": "Ukuran benda",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-8-b",
+        "option_label": "B",
+        "content": "Pusat atau sumbu benda",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-8-c",
+        "option_label": "C",
+        "content": "Bagian benda yang dipotong",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-8-d",
+        "option_label": "D",
+        "content": "Tebal benda",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-8-e",
+        "option_label": "E",
+        "content": "Permukaan benda",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-09",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Etiket pada gambar teknik berfungsi untuk memberikan...",
+    "explanation": "Etiket berisi informasi gambar seperti nama gambar, nama pembuat, skala, nomor gambar, dan informasi lainnya.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-9-a",
+        "option_label": "A",
+        "content": "Warna pada gambar",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-9-b",
+        "option_label": "B",
+        "content": "Identitas dan informasi gambar",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-9-c",
+        "option_label": "C",
+        "content": "Efek tiga dimensi",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-9-d",
+        "option_label": "D",
+        "content": "Hiasan gambar",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-9-e",
+        "option_label": "E",
+        "content": "Arsiran benda",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-10",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Salah satu informasi yang terdapat pada etiket gambar adalah...",
+    "explanation": "Nama gambar merupakan salah satu informasi penting yang dicantumkan pada etiket.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-10-a",
+        "option_label": "A",
+        "content": "Nama gambar",
+        "is_correct": true,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-10-b",
+        "option_label": "B",
+        "content": "Warna kendaraan",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-10-c",
+        "option_label": "C",
+        "content": "Harga kendaraan",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-10-d",
+        "option_label": "D",
+        "content": "Nama pemilik kendaraan",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-10-e",
+        "option_label": "E",
+        "content": "Nomor mesin kendaraan",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-11",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Ukuran kertas gambar A4 adalah...",
+    "explanation": "Ukuran standar kertas A4 adalah 210 × 297 mm.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-11-a",
+        "option_label": "A",
+        "content": "148 × 210 mm",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-11-b",
+        "option_label": "B",
+        "content": "210 × 297 mm",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-11-c",
+        "option_label": "C",
+        "content": "297 × 420 mm",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-11-d",
+        "option_label": "D",
+        "content": "420 × 594 mm",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-11-e",
+        "option_label": "E",
+        "content": "594 × 841 mm",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-12",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Skala 1 : 2 pada gambar teknik berarti...",
+    "explanation": "Skala 1:2 berarti setiap 1 satuan pada gambar mewakili 2 satuan ukuran sebenarnya.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-12-a",
+        "option_label": "A",
+        "content": "Gambar dua kali lebih besar dari benda",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-12-b",
+        "option_label": "B",
+        "content": "Gambar sama besar dengan benda",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-12-c",
+        "option_label": "C",
+        "content": "Gambar setengah dari ukuran sebenarnya",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-12-d",
+        "option_label": "D",
+        "content": "Benda setengah dari ukuran gambar",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-12-e",
+        "option_label": "E",
+        "content": "Gambar tidak memiliki ukuran",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-13",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Sebuah komponen memiliki panjang sebenarnya 100 mm. Jika digambar dengan skala 1:2, panjang pada gambar adalah...",
+    "explanation": "Skala 1:2 berarti ukuran gambar adalah setengah dari ukuran sebenarnya. Jadi 100 mm ÷ 2 = 50 mm.",
+    "weight": 2,
+    "difficulty": "sedang",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-13-a",
+        "option_label": "A",
+        "content": "25 mm",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-13-b",
+        "option_label": "B",
+        "content": "40 mm",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-13-c",
+        "option_label": "C",
+        "content": "50 mm",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-13-d",
+        "option_label": "D",
+        "content": "100 mm",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-13-e",
+        "option_label": "E",
+        "content": "200 mm",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-14",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Skala 2 : 1 menunjukkan bahwa gambar dibuat...",
+    "explanation": "Skala 2:1 merupakan skala pembesaran, sehingga ukuran gambar dua kali ukuran benda sebenarnya.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-14-a",
+        "option_label": "A",
+        "content": "Setengah dari ukuran sebenarnya",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-14-b",
+        "option_label": "B",
+        "content": "Sama dengan ukuran sebenarnya",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-14-c",
+        "option_label": "C",
+        "content": "Dua kali ukuran sebenarnya",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-14-d",
+        "option_label": "D",
+        "content": "Tiga kali ukuran sebenarnya",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-14-e",
+        "option_label": "E",
+        "content": "Tanpa ukuran",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-15",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Pandangan benda yang dilihat dari arah depan disebut...",
+    "explanation": "Pandangan depan merupakan gambar benda yang dilihat dari arah depan.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-15-a",
+        "option_label": "A",
+        "content": "Pandangan atas",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-15-b",
+        "option_label": "B",
+        "content": "Pandangan depan",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-15-c",
+        "option_label": "C",
+        "content": "Pandangan samping",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-15-d",
+        "option_label": "D",
+        "content": "Pandangan belakang",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-15-e",
+        "option_label": "E",
+        "content": "Pandangan bawah",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-16",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Pandangan atas digunakan untuk memperlihatkan bentuk benda dari arah...",
+    "explanation": "Pandangan atas menunjukkan bentuk benda ketika dilihat dari arah atas.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-16-a",
+        "option_label": "A",
+        "content": "Depan",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-16-b",
+        "option_label": "B",
+        "content": "Belakang",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-16-c",
+        "option_label": "C",
+        "content": "Atas",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-16-d",
+        "option_label": "D",
+        "content": "Bawah",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-16-e",
+        "option_label": "E",
+        "content": "Samping",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-17",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Penggunaan beberapa pandangan dalam gambar teknik bertujuan untuk...",
+    "explanation": "Beberapa pandangan digunakan agar bentuk dan detail benda dapat dipahami secara lengkap.",
+    "weight": 2,
+    "difficulty": "sedang",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-17-a",
+        "option_label": "A",
+        "content": "Memperindah gambar",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-17-b",
+        "option_label": "B",
+        "content": "Menunjukkan bentuk benda secara lebih lengkap",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-17-c",
+        "option_label": "C",
+        "content": "Mengurangi ukuran benda",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-17-d",
+        "option_label": "D",
+        "content": "Menghilangkan garis benda",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-17-e",
+        "option_label": "E",
+        "content": "Mengurangi informasi gambar",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-18",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Gambar yang memperlihatkan panjang, lebar, dan tinggi benda disebut gambar...",
+    "explanation": "Gambar 3D menampilkan tiga dimensi benda, yaitu panjang, lebar, dan tinggi.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-18-a",
+        "option_label": "A",
+        "content": "1D",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-18-b",
+        "option_label": "B",
+        "content": "2D",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-18-c",
+        "option_label": "C",
+        "content": "3D",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-18-d",
+        "option_label": "D",
+        "content": "Simbol",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-18-e",
+        "option_label": "E",
+        "content": "Sketsa",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-19",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Fungsi garis ukuran pada gambar teknik adalah...",
+    "explanation": "Garis ukuran digunakan bersama angka ukuran untuk menunjukkan dimensi suatu bagian benda.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-19-a",
+        "option_label": "A",
+        "content": "Menunjukkan bagian tersembunyi",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-19-b",
+        "option_label": "B",
+        "content": "Menunjukkan ukuran benda",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-19-c",
+        "option_label": "C",
+        "content": "Menunjukkan pusat benda",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-19-d",
+        "option_label": "D",
+        "content": "Menunjukkan warna benda",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-19-e",
+        "option_label": "E",
+        "content": "Menunjukkan bahan benda",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-20",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Tanda anak panah pada garis ukuran menunjukkan...",
+    "explanation": "Anak panah pada garis ukuran menunjukkan batas atau titik awal dan akhir ukuran yang diberikan.",
+    "weight": 2,
+    "difficulty": "sedang",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-20-a",
+        "option_label": "A",
+        "content": "Arah pandangan",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-20-b",
+        "option_label": "B",
+        "content": "Batas ukuran",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-20-c",
+        "option_label": "C",
+        "content": "Pusat benda",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-20-d",
+        "option_label": "D",
+        "content": "Bagian tersembunyi",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-20-e",
+        "option_label": "E",
+        "content": "Bagian yang dipotong",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-21",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Gambar potongan digunakan untuk memperlihatkan...",
+    "explanation": "Gambar potongan digunakan untuk memperjelas bentuk dan konstruksi bagian dalam suatu benda.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-21-a",
+        "option_label": "A",
+        "content": "Warna benda",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-21-b",
+        "option_label": "B",
+        "content": "Bagian dalam benda",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-21-c",
+        "option_label": "C",
+        "content": "Harga benda",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-21-d",
+        "option_label": "D",
+        "content": "Ukuran kertas",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-21-e",
+        "option_label": "E",
+        "content": "Nama pembuat",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-22",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Arsiran pada gambar potongan menunjukkan bagian benda yang...",
+    "explanation": "Arsiran digunakan untuk menunjukkan permukaan atau bagian benda yang terkena bidang potong.",
+    "weight": 2,
+    "difficulty": "sedang",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-22-a",
+        "option_label": "A",
+        "content": "Tidak terkena potongan",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-22-b",
+        "option_label": "B",
+        "content": "Terkena bidang potong",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-22-c",
+        "option_label": "C",
+        "content": "Tidak terlihat",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-22-d",
+        "option_label": "D",
+        "content": "Berputar",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-22-e",
+        "option_label": "E",
+        "content": "Bergerak",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-23",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Dalam AutoCAD, perintah LINE digunakan untuk...",
+    "explanation": "Perintah LINE pada AutoCAD digunakan untuk membuat objek berupa garis lurus.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-23-a",
+        "option_label": "A",
+        "content": "Membuat lingkaran",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-23-b",
+        "option_label": "B",
+        "content": "Membuat garis",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-23-c",
+        "option_label": "C",
+        "content": "Menghapus objek",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-23-d",
+        "option_label": "D",
+        "content": "Membuat teks",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-23-e",
+        "option_label": "E",
+        "content": "Memindahkan objek",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-24",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Dalam AutoCAD, perintah CIRCLE digunakan untuk membuat...",
+    "explanation": "Perintah CIRCLE digunakan untuk membuat objek lingkaran dengan menentukan titik pusat dan radius atau diameter.",
+    "weight": 2,
+    "difficulty": "mudah",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-24-a",
+        "option_label": "A",
+        "content": "Garis",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-24-b",
+        "option_label": "B",
+        "content": "Persegi",
+        "is_correct": false,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-24-c",
+        "option_label": "C",
+        "content": "Lingkaran",
+        "is_correct": true,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-24-d",
+        "option_label": "D",
+        "content": "Teks",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-24-e",
+        "option_label": "E",
+        "content": "Arsiran",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  },
+  {
+    "id": "q-gto-25",
+    "bank_id": "bank-01",
+    "material_id": "mat-01",
+    "target_grades": [
+      "X"
+    ],
+    "question_type": "pilihan_ganda",
+    "content": "Dalam pembuatan gambar teknik, ketelitian ukuran sangat penting karena...",
+    "explanation": "Ketelitian ukuran sangat penting agar hasil pembuatan atau pengerjaan benda sesuai dengan rancangan yang telah dibuat.",
+    "weight": 2,
+    "difficulty": "sedang",
+    "competency": "Mengidentifikasi peralatan dan standar gambar teknik otomotif",
+    "created_at": "2024-09-01T08:00:00Z",
+    "options": [
+      {
+        "id": "opt-gto-25-a",
+        "option_label": "A",
+        "content": "Agar gambar terlihat lebih berwarna",
+        "is_correct": false,
+        "order_index": 1
+      },
+      {
+        "id": "opt-gto-25-b",
+        "option_label": "B",
+        "content": "Agar benda dapat dibuat sesuai rancangan",
+        "is_correct": true,
+        "order_index": 2
+      },
+      {
+        "id": "opt-gto-25-c",
+        "option_label": "C",
+        "content": "Agar kertas tidak cepat rusak",
+        "is_correct": false,
+        "order_index": 3
+      },
+      {
+        "id": "opt-gto-25-d",
+        "option_label": "D",
+        "content": "Agar gambar menjadi lebih besar",
+        "is_correct": false,
+        "order_index": 4
+      },
+      {
+        "id": "opt-gto-25-e",
+        "option_label": "E",
+        "content": "Agar gambar lebih sulit dibaca",
+        "is_correct": false,
+        "order_index": 5
+      }
+    ]
+  }
+]

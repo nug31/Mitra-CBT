@@ -42,7 +42,13 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     const otherTitle = (examTitle || '').toLowerCase();
     const isCurEngine = curTitle.includes('konversi') || curTitle.includes('engine') || curTitle.includes('motor bakar');
     const isOtherEngine = otherTitle.includes('konversi') || otherTitle.includes('engine') || otherTitle.includes('motor bakar') || examId === 'exam-02' || examId === 'exam-04';
-    return isCurEngine && isOtherEngine;
+    if (isCurEngine && isOtherEngine) return true;
+
+    const isCurGto = curTitle.includes('gambar teknik') || curTitle.includes('gto') || selectedExamId === 'exam-gto-x' || selectedExamId === 'exam-01';
+    const isOtherGto = otherTitle.includes('gambar teknik') || otherTitle.includes('gto') || examId === 'exam-gto-x' || examId === 'exam-01';
+    if (isCurGto && isOtherGto) return true;
+
+    return false;
   };
 
   useEffect(() => {
@@ -167,11 +173,11 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     const exList = await db.getExams();
     setExams(exList);
     if (!selectedExamId && exList.length > 0) {
-      // Prioritize engine / XII TKR exam
-      const engineExam = exList.find(e => e.title.includes('Dasar Konversi') || e.id === 'exam-04') ||
-                         exList.find(e => e.status === 'active') || 
-                         exList[0];
-      setSelectedExamId(engineExam.id);
+      // Prioritize active GTO exam or active exam
+      const preferredExam = exList.find(e => e.id === 'exam-gto-x' || e.title.toLowerCase().includes('gambar teknik') || e.title.toLowerCase().includes('gto')) ||
+                            exList.find(e => e.status === 'active') || 
+                            exList[0];
+      setSelectedExamId(preferredExam.id);
     }
   };
 
@@ -181,13 +187,29 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
       db.getEvents(examId)
     ]);
 
-    // Cross-merge engine participants if teacher is on an engine exam
     let combinedParticipants = [...partList];
     const curExam = exams.find(e => e.id === examId);
-    const isEngine = (curExam?.title || '').toLowerCase().includes('konversi') || (curExam?.title || '').toLowerCase().includes('engine');
+    const curTitle = (curExam?.title || '').toLowerCase();
+
+    // Cross-merge engine participants if teacher is on an engine exam
+    const isEngine = curTitle.includes('konversi') || curTitle.includes('engine');
     if (isEngine) {
       const otherIds = ['exam-02', 'exam-04'].filter(id => id !== examId);
       for (const oid of otherIds) {
+        const otherParts = await db.getExamParticipants(oid);
+        for (const op of otherParts) {
+          if (!combinedParticipants.find(p => p.id === op.id)) {
+            combinedParticipants.push(op);
+          }
+        }
+      }
+    }
+
+    // Cross-merge GTO participants if teacher is on GTO exam
+    const isGto = curTitle.includes('gambar teknik') || curTitle.includes('gto') || examId === 'exam-gto-x' || examId === 'exam-01';
+    if (isGto) {
+      const otherGtoIds = exams.filter(e => e.id !== examId && (e.title.toLowerCase().includes('gambar teknik') || e.title.toLowerCase().includes('gto') || e.id === 'exam-gto-x' || e.id === 'exam-01')).map(e => e.id);
+      for (const oid of otherGtoIds) {
         const otherParts = await db.getExamParticipants(oid);
         for (const op of otherParts) {
           if (!combinedParticipants.find(p => p.id === op.id)) {

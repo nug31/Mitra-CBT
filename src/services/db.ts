@@ -593,7 +593,7 @@ class DBService {
       setStorage('exams', localExams);
     }
 
-    // Auto-migrate: ensure STS Gambar Teknik Otomotif (GTO) Kelas X exists with imported questions from bank-01
+    // Auto-migrate: ensure STS Gambar Teknik Otomotif Kelas X exists with 25 questions from bank-01 and PIN GT010
     const storedQuestions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
     const gtoQuestions = storedQuestions.filter(q => q.bank_id === 'bank-01');
     let gtoExam = localExams.find(e => e.id === 'exam-gto-x' || e.title.toLowerCase().includes('gambar teknik') || e.title.toLowerCase().includes('gto'));
@@ -601,7 +601,7 @@ class DBService {
     if (!gtoExam) {
       const newGtoExam: Exam = {
         id: 'exam-gto-x',
-        title: 'STS Gambar Teknik Otomotif (GTO) Kelas X',
+        title: 'STS Gambar Teknik Otomotif Kelas X',
         assessment_type_id: 'eval-01',
         subject_id: 'subj-01',
         class_id: 'all',
@@ -611,7 +611,7 @@ class DBService {
         start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
         end_time: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
         duration_minutes: 90,
-        question_count: gtoQuestions.length || 28,
+        question_count: gtoQuestions.length || 25,
         kkm: 75,
         randomize_questions: true,
         randomize_options: true,
@@ -620,20 +620,22 @@ class DBService {
         single_attempt: true,
         show_results_immediately: true,
         show_explanation: true,
-        pin_code: 'GTO10',
+        pin_code: 'GT010',
         status: 'active',
         questions: gtoQuestions
       };
       localExams.unshift(newGtoExam);
       setStorage('exams', localExams);
     } else {
-      // Sync questions count if bank-01 has more questions imported
+      // Keep GTO active, ensure pin_code is GT010, class is all, and questions are synced
+      gtoExam.status = 'active';
+      gtoExam.pin_code = 'GT010';
+      gtoExam.class_id = 'all';
       if (gtoQuestions.length > 0 && (!gtoExam.questions || gtoExam.questions.length < gtoQuestions.length)) {
         gtoExam.question_count = gtoQuestions.length;
         gtoExam.questions = gtoQuestions;
-        gtoExam.status = 'active';
-        setStorage('exams', localExams);
       }
+      setStorage('exams', localExams);
     }
 
     const types = await this.getAssessmentTypes();

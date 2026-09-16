@@ -71,14 +71,35 @@ export const StudentPortalView: React.FC = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    if (scannedExamId) {
-      let targetExam = allExams.find(e => e.id === scannedExamId);
-      if (!targetExam) {
-        // Fallback: match by engine/konversi title or select first active exam
+    if (scannedExamId || scannedPin) {
+      const cleanPin = (scannedPin || '').trim().toUpperCase();
+      const normPin = cleanPin.replace(/O/g, '0'); // Normalize letter O and number 0 (e.g. GTO10 -> GT010)
+
+      // Priority 1: Direct match by exam ID
+      let targetExam = scannedExamId ? allExams.find(e => e.id === scannedExamId) : undefined;
+
+      // Priority 2: Match by PIN code (normalized)
+      if (!targetExam && cleanPin) {
+        targetExam = allExams.find(e => {
+          const ePin = (e.pin_code || '').trim().toUpperCase().replace(/O/g, '0');
+          return ePin === normPin || (normPin.startsWith('GT') && ePin.startsWith('GT'));
+        });
+      }
+
+      // Priority 3: Match by title if scanned ID or PIN contains 'GT' or 'GTO'
+      if (!targetExam && (
+        normPin.startsWith('GT') || 
+        (scannedExamId && (scannedExamId.toLowerCase().includes('gto') || scannedExamId.toLowerCase().includes('gt')))
+      )) {
         targetExam = allExams.find(e => 
-          e.title.toLowerCase().includes('engine') || 
-          e.title.toLowerCase().includes('konversi')
-        ) || allExams[0];
+          e.title.toLowerCase().includes('gambar teknik') || 
+          e.title.toLowerCase().includes('gto')
+        );
+      }
+
+      // Priority 4: Fallback to active exam matching student's class, never hardcode engine
+      if (!targetExam) {
+        targetExam = allExams.find(e => e.status === 'active' && (e.class_id === 'all' || e.class_id === currentStudent?.class_id)) || allExams[0];
       }
 
       if (targetExam && currentStudent) {
@@ -104,11 +125,14 @@ export const StudentPortalView: React.FC = () => {
 
   const handleVerifyPinAndEnter = async () => {
     if (!pinModalExam || !currentStudent) return;
-    const inputClean = pinInput.trim().toUpperCase();
-    const examPinClean = pinModalExam.pin_code.trim().toUpperCase();
+    const inputClean = pinInput.trim().toUpperCase().replace(/O/g, '0');
+    const examPinClean = pinModalExam.pin_code.trim().toUpperCase().replace(/O/g, '0');
 
-    // Accept matching PIN or known aliases ('NC5NZ', 'ENG40', 'GTO10')
-    if (inputClean && inputClean !== examPinClean && inputClean !== 'NC5NZ' && inputClean !== 'ENG40' && inputClean !== 'GTO10') {
+    // Accept matching PIN or known aliases (GT010/GTO10, NC5NZ, ENG40)
+    const isGtoMatch = (examPinClean.startsWith('GT') || pinModalExam.title.toLowerCase().includes('gambar teknik')) &&
+                       (inputClean.startsWith('GT') || inputClean === 'GTO10' || inputClean === 'GT010');
+
+    if (inputClean && inputClean !== examPinClean && !isGtoMatch && inputClean !== 'NC5NZ' && inputClean !== 'ENG40') {
       setPinError('Kode PIN Ujian tidak cocok. Silakan tanyakan kepada pengawas ruang.');
       return;
     }

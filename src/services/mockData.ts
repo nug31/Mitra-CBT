@@ -3,6 +3,9 @@ import {
   AssessmentType, QuestionBank, Question, Exam, ExamParticipant, 
   Answer, ExamResult, AuditLog, ExamEvent 
 } from '../types';
+import gtoQuestionsData from './gtoInitialQuestions.json';
+
+export const GTO_INITIAL_QUESTIONS: Question[] = gtoQuestionsData as Question[];
 
 // SVG Diagram Assets for Vocational SMK (Gambar Teknik & Konversi Energi Engine)
 export const DIAGRAM_PROYEKSI_EROPA = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" fill="none">
@@ -170,7 +173,7 @@ export const INITIAL_QUESTION_BANKS: QuestionBank[] = [
     description: 'Kumpulan soal standar ISO untuk proyeksi, etiket, garis kerja, dan potongan mesin.',
     target_grades: ['X'],
     created_at: '2024-08-01T08:00:00Z',
-    question_count: 5
+    question_count: 25
   },
   {
     id: 'bank-02',
@@ -185,6 +188,7 @@ export const INITIAL_QUESTION_BANKS: QuestionBank[] = [
 ];
 
 export const INITIAL_QUESTIONS: Question[] = [
+  ...GTO_INITIAL_QUESTIONS,
   {
     id: 'q-01',
     bank_id: 'bank-01',
@@ -691,18 +695,18 @@ export const INITIAL_QUESTIONS: Question[] = [
 
 export const INITIAL_EXAMS: Exam[] = [
   {
-    id: 'exam-01',
-    title: 'STS Gambar Teknik XI TKR',
+    id: 'exam-gto-x',
+    title: 'STS Gambar Teknik Otomotif Kelas X',
     assessment_type_id: 'eval-01',
     subject_id: 'subj-01',
-    class_id: 'cls-tkr-1',
+    class_id: 'all',
     teacher_id: 'teacher-01',
     academic_year: '2024/2025',
     semester: 'Ganjil',
-    start_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    end_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    end_time: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
     duration_minutes: 90,
-    question_count: 4,
+    question_count: 25,
     kkm: 75,
     randomize_questions: true,
     randomize_options: true,
@@ -711,12 +715,40 @@ export const INITIAL_EXAMS: Exam[] = [
     single_attempt: true,
     show_results_immediately: true,
     show_explanation: true,
-    pin_code: 'GT902',
+    pin_code: 'GT010',
     status: 'active',
     assessment_type: INITIAL_ASSESSMENT_TYPES[0],
     subject: INITIAL_SUBJECTS[0],
-    class: INITIAL_CLASSES[0],
-    questions: [INITIAL_QUESTIONS[0], INITIAL_QUESTIONS[2], INITIAL_QUESTIONS[6]]
+    class: { id: 'all', name: 'Semua Kelas', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+    questions: GTO_INITIAL_QUESTIONS
+  },
+  {
+    id: 'exam-01',
+    title: 'STS Gambar Teknik Otomotif Kelas X (Cadangan)',
+    assessment_type_id: 'eval-01',
+    subject_id: 'subj-01',
+    class_id: 'all',
+    teacher_id: 'teacher-01',
+    academic_year: '2024/2025',
+    semester: 'Ganjil',
+    start_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    end_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    duration_minutes: 90,
+    question_count: 25,
+    kkm: 75,
+    randomize_questions: true,
+    randomize_options: true,
+    allow_backward: true,
+    fullscreen_mode: true,
+    single_attempt: true,
+    show_results_immediately: true,
+    show_explanation: true,
+    pin_code: 'GT010',
+    status: 'active',
+    assessment_type: INITIAL_ASSESSMENT_TYPES[0],
+    subject: INITIAL_SUBJECTS[0],
+    class: { id: 'all', name: 'Semua Kelas', grade: 'X', major: 'TKR', academic_year: '2024/2025' },
+    questions: GTO_INITIAL_QUESTIONS
   },
   {
     id: 'exam-02',
