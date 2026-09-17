@@ -30,7 +30,7 @@ const MainLayout: React.FC = () => {
       <div className="min-h-screen min-h-[100dvh] bg-slate-950 flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-3">
           <div className="w-9 h-9 border-3 border-sky-400 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-slate-400 font-medium">Memuat Sistem Mitra CBT...</p>
+          <p className="text-xs text-slate-400 font-medium">Memuat Sistem Mitra Exam...</p>
         </div>
       </div>
     );

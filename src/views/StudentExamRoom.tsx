@@ -855,7 +855,7 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
             </div>
           ) : (
             <div className="p-4 sm:p-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-xs text-slate-300 leading-relaxed">
-              Jawaban Anda telah tersimpan secara aman di server CBT SMK Mitra. Nilai dan hasil evaluasi akan diumumkan secara resmi oleh guru pengampu setelah batas waktu ujian selesai.
+              Jawaban Anda telah tersimpan secara aman di server Mitra Exam. Nilai dan hasil evaluasi akan diumumkan secara resmi oleh guru pengampu setelah batas waktu ujian selesai.
             </div>
           )}
 
@@ -1397,13 +1397,13 @@ export const StudentExamRoom: React.FC<StudentExamRoomProps> = ({
 
             <div>
               <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-brand-500/20 text-brand-300 border border-brand-500/30">
-                SISTEM INTEGRITAS MITRA CBT
+                SISTEM INTEGRITAS MITRA EXAM
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-white mt-2.5 tracking-tight">
                 Mode Ujian Aman Aktif
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">
-                Untuk menjamin kejujuran asesmen, sistem CBT mengaktifkan protokol pengawasan ketat:
+                Untuk menjamin kejujuran asesmen, sistem Mitra Exam mengaktifkan protokol pengawasan ketat:
               </p>
             </div>
 

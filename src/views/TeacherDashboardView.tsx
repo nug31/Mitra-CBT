@@ -129,7 +129,7 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({ onNa
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Selamat Datang di MITRA CBT
+            Selamat Datang di MITRA EXAM
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
             Platform asesmen digital terintegrasi untuk seluruh jenis evaluasi pembelajaran: STS, SAS, Ulangan Harian, Praktik Teori Kejuruan, dan Remedial.

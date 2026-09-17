@@ -120,7 +120,7 @@ const ALLOWED_EXAM_CLASSES: ClassRoom[] = [
             <Layers className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-            MITRA CBT
+            MITRA EXAM
           </h1>
 
         </div>
@@ -350,7 +350,7 @@ const ALLOWED_EXAM_CLASSES: ClassRoom[] = [
 
         {/* Footer info */}
         <p className="text-center text-[11px] text-slate-400 mt-4 sm:mt-5">
-          &copy; {new Date().getFullYear()} Mitra CBT — SMK Digital Assessment Architecture
+          &copy; {new Date().getFullYear()} Mitra Exam — SMK Digital Assessment Architecture
         </p>
       </div>
     </div>

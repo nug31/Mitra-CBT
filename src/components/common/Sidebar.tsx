@@ -157,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="pt-3 sm:pt-4 border-t border-slate-100 text-[11px] text-slate-400 text-center">
-          <span>MITRA CBT v2.4 • 2024/2025</span>
+          <span>MITRA EXAM v2.4 • 2024/2025</span>
         </div>
       </aside>
     </>

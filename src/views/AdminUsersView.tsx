@@ -72,7 +72,7 @@ export const AdminUsersView: React.FC = () => {
               </h1>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Dewan guru dan peserta didik SMK — otorisasi akses Mitra CBT
+              Dewan guru dan peserta didik SMK — otorisasi akses Mitra Exam
             </p>
           </div>
 

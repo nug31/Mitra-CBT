@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   Send,
   Eye,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Search,
+  X
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -30,6 +32,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
   const [events, setEvents] = useState<ExamEvent[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'in_progress' | 'submitted' | 'warning'>('all');
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
+  const [searchStudent, setSearchStudent] = useState<string>('');
 
   useEffect(() => {
     loadExams();
@@ -311,6 +314,14 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
       if (pClass !== selectedClassFilter) return false;
     }
 
+    // 3. Search student by name or NIS
+    if (searchStudent.trim()) {
+      const q = searchStudent.toLowerCase().trim();
+      const sName = (p.student?.profile?.full_name || '').toLowerCase();
+      const sNis = (p.student?.nis || p.student?.nisn || '').toLowerCase();
+      if (!sName.includes(q) && !sNis.includes(q)) return false;
+    }
+
     return true;
   });
 
@@ -333,7 +344,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
             </span>
             <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <span>Live Monitoring Pengawas CBT</span>
+              <span>Live Monitoring Pengawas Mitra Exam</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold">
                 REALTIME
               </span>
@@ -344,7 +355,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
           </p>
         </div>
 
-        {/* Exam selector & Export Excel Button */}
+        {/* Exam selector & Filters & Export Excel Button */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-slate-600 uppercase shrink-0">
@@ -377,6 +388,28 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+          </div>
+
+          {/* Cari Siswa */}
+          <div className="relative min-w-[170px]">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchStudent}
+              onChange={(e) => setSearchStudent(e.target.value)}
+              placeholder="Cari siswa..."
+              className="w-full text-xs font-medium pl-8 pr-7 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+            {searchStudent && (
+              <button
+                type="button"
+                onClick={() => setSearchStudent('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600"
+                title="Hapus pencarian"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           <button

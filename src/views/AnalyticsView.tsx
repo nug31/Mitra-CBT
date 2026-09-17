@@ -12,7 +12,11 @@ import {
   Printer, 
   Layers,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Search,
+  Filter,
+  X,
+  Users
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -40,6 +44,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isGeneratingRemedial, setIsGeneratingRemedial] = useState(false);
   const [remedialSuccess, setRemedialSuccess] = useState<string | null>(null);
+  const [searchStudent, setSearchStudent] = useState<string>('');
+  const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
 
   useEffect(() => {
     loadExams();
@@ -96,6 +102,37 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
 
+  // Extract unique classes for filter dropdown
+  const uniqueClasses = Array.from(
+    new Set(
+      results
+        .map(
+          r => r.participant?.student?.class?.name || (r.participant as any)?.class_name || selectedExam?.class?.name || 'Tanpa Kelas'
+        )
+        .filter(Boolean)
+    )
+  ).sort();
+
+  // Filtered results by student name/NISN and class
+  const filteredResults = results.filter(r => {
+    const studentName = (r.participant?.student?.profile?.full_name || '').toLowerCase();
+    const nisn = (r.participant?.student?.nisn || r.participant?.student?.nis || '').toLowerCase();
+    const className = r.participant?.student?.class?.name || (r.participant as any)?.class_name || selectedExam?.class?.name || 'Tanpa Kelas';
+
+    // 1. Search filter
+    if (searchStudent.trim()) {
+      const q = searchStudent.toLowerCase().trim();
+      if (!studentName.includes(q) && !nisn.includes(q)) return false;
+    }
+
+    // 2. Class filter
+    if (selectedClassFilter !== 'all') {
+      if (className !== selectedClassFilter) return false;
+    }
+
+    return true;
+  });
+
   // Statistics calculation
   const scores = results.map(r => Number(r.total_score));
   const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '0';
@@ -150,16 +187,17 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   // Export to Excel (Nama, NISN, Kelas, Nilai)
   const handleExportExcel = () => {
-    if (!selectedExam || results.length === 0) {
+    const listToExport = filteredResults.length > 0 ? filteredResults : results;
+    if (!selectedExam || listToExport.length === 0) {
       alert('Belum ada data nilai peserta untuk diexport.');
       return;
     }
 
-    const dataRows = results.map((r, i) => ({
+    const dataRows = listToExport.map((r, i) => ({
       'No': i + 1,
       'Nama Siswa': r.participant?.student?.profile?.full_name || '-',
       'NISN': r.participant?.student?.nisn || r.participant?.student?.nis || '-',
-      'Kelas': r.participant?.student?.class?.name || selectedExam.class?.name || '-',
+      'Kelas': r.participant?.student?.class?.name || (r.participant as any)?.class_name || selectedExam.class?.name || '-',
       'Nilai': r.total_score,
       'Status Kelulusan': r.passed ? 'LULUS' : 'REMEDIAL',
       'Benar': r.correct_count,
@@ -184,7 +222,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Nilai');
     const safeTitle = (selectedExam.title || 'Rekap_Nilai').replace(/[^a-zA-Z0-9_-]/g, '_');
-    XLSX.writeFile(wb, `Rekap_Nilai_${safeTitle}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const classSuffix = selectedClassFilter !== 'all' ? `_${selectedClassFilter.replace(/[^a-zA-Z0-9_-]/g, '_')}` : '';
+    XLSX.writeFile(wb, `Rekap_Nilai_${safeTitle}${classSuffix}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -430,13 +469,74 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
       {/* Student Score Recap Table */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden print-page">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 text-sm">
-            Rekapitulasi Nilai Peserta Didik
-          </h3>
-          <span className="text-xs text-slate-400">
-            {results.length} Peserta Terdata
-          </span>
+        <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-brand-600" />
+              <span>Rekapitulasi Nilai Peserta Didik</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Menampilkan {filteredResults.length} dari {results.length} peserta terdata
+            </p>
+          </div>
+
+          {/* Kolom pencarian kelas dan nama siswa */}
+          <div className="flex items-center gap-2.5 flex-wrap no-print">
+            {/* Filter Kelas */}
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-bold text-slate-600 uppercase shrink-0 hidden sm:inline">
+                Kelas:
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedClassFilter}
+                  onChange={(e) => setSelectedClassFilter(e.target.value)}
+                  className="text-xs font-semibold pl-8 pr-7 py-2 rounded-xl border border-slate-300 bg-white hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition cursor-pointer appearance-none min-w-[130px]"
+                >
+                  <option value="all">Semua Kelas</option>
+                  {uniqueClasses.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <Filter className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Pencarian Nama Siswa */}
+            <div className="relative flex-1 sm:w-64 min-w-[200px]">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchStudent}
+                onChange={(e) => setSearchStudent(e.target.value)}
+                placeholder="Cari nama atau NISN siswa..."
+                className="w-full text-xs font-medium pl-8.5 pr-7 py-2 rounded-xl border border-slate-300 bg-white hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+              />
+              {searchStudent && (
+                <button
+                  type="button"
+                  onClick={() => setSearchStudent('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded"
+                  title="Hapus pencarian"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {(searchStudent || selectedClassFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchStudent('');
+                  setSelectedClassFilter('all');
+                }}
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 underline px-1 py-1 shrink-0"
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -453,38 +553,51 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {results.map((r, i) => (
-                <tr key={r.id} className="hover:bg-slate-50 transition">
-                  <td className="p-3.5 font-mono text-slate-500">{i + 1}</td>
-                  <td className="p-3.5 font-bold text-slate-900">
-                    {r.participant?.student?.profile?.full_name || 'Peserta'}
-                  </td>
-                  <td className="p-3.5 font-mono text-slate-600 font-semibold">
-                    {r.participant?.student?.nisn || r.participant?.student?.nis || '-'}
-                  </td>
-                  <td className="p-3.5 font-bold text-brand-700">
-                    {r.participant?.student?.class?.name || selectedExam?.class?.name || '-'}
-                  </td>
-                  <td className="p-3.5 text-center font-mono">
-                    <span className="text-emerald-600 font-bold">{r.correct_count}</span> /{' '}
-                    <span className="text-rose-600 font-bold">{r.wrong_count}</span>
-                  </td>
-                  <td className="p-3.5 text-center font-mono font-black text-sm text-slate-900">
-                    {r.total_score}
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                        r.passed
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
-                      }`}
-                    >
-                      {r.passed ? 'LULUS' : 'REMEDIAL'}
-                    </span>
+              {filteredResults.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-1">
+                      <p className="font-semibold text-slate-600">Tidak ada hasil nilai siswa ditemukan</p>
+                      <p className="text-[11px] text-slate-400">
+                        Coba periksa kata kunci nama siswa atau pilihan filter kelas
+                      </p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredResults.map((r, i) => (
+                  <tr key={r.id} className="hover:bg-slate-50 transition">
+                    <td className="p-3.5 font-mono text-slate-500">{i + 1}</td>
+                    <td className="p-3.5 font-bold text-slate-900">
+                      {r.participant?.student?.profile?.full_name || 'Peserta'}
+                    </td>
+                    <td className="p-3.5 font-mono text-slate-600 font-semibold">
+                      {r.participant?.student?.nisn || r.participant?.student?.nis || '-'}
+                    </td>
+                    <td className="p-3.5 font-bold text-brand-700">
+                      {r.participant?.student?.class?.name || (r.participant as any)?.class_name || selectedExam?.class?.name || '-'}
+                    </td>
+                    <td className="p-3.5 text-center font-mono">
+                      <span className="text-emerald-600 font-bold">{r.correct_count}</span> /{' '}
+                      <span className="text-rose-600 font-bold">{r.wrong_count}</span>
+                    </td>
+                    <td className="p-3.5 text-center font-mono font-black text-sm text-slate-900">
+                      {r.total_score}
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          r.passed
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {r.passed ? 'LULUS' : 'REMEDIAL'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

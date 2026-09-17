@@ -229,7 +229,7 @@ export const ExamModal: React.FC<ExamModalProps> = ({
             <CalendarClock className="w-5 h-5 text-brand-600" />
             <div>
               <h3 className="font-bold text-slate-900 text-base">
-                {initialExam ? 'Konfigurasi Ujian' : 'Buat Jadwal Ujian Baru (Mitra CBT)'}
+                {initialExam ? 'Konfigurasi Ujian' : 'Buat Jadwal Ujian Baru (Mitra Exam)'}
               </h3>
               <p className="text-xs text-slate-500">
                 Struktur: Jenis Evaluasi → Mata Pelajaran → Kelas → Bank Soal → Ujian
