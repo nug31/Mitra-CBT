@@ -1087,26 +1087,66 @@ class DBService {
   }
 }
 
-// Auto-purge old test data on a new day to clear out previous days' experiments
+// Auto-purge: hanya bersihkan sesi ujian yang tidak selesai dari hari SEBELUMNYA.
+// TIDAK pernah menghapus data yang sudah submit atau data hari ini.
 (function autoPurgeOldTestData() {
   try {
-    const lastRunStr = localStorage.getItem('mitracbt_last_purge_date');
+    const STORAGE_PREFIX = 'mitracbt_';
     const todayStr = new Date().toDateString();
-    
-    // Also force purge once right now if the user just updated to this version
-    const forcePurgeVersion = 'v1.0.1';
-    const lastPurgeVersion = localStorage.getItem('mitracbt_purge_version');
-    
-    if (lastRunStr !== todayStr || lastPurgeVersion !== forcePurgeVersion) {
-      localStorage.removeItem('mitracbt_events');
-      localStorage.removeItem('mitracbt_participants');
-      localStorage.removeItem('mitracbt_exam_results');
-      localStorage.removeItem('mitracbt_answers');
-      
-      localStorage.setItem('mitracbt_last_purge_date', todayStr);
-      localStorage.setItem('mitracbt_purge_version', forcePurgeVersion);
-      console.log('Daily auto-purge executed: cleared old test data.');
+    const lastRunStr = localStorage.getItem(STORAGE_PREFIX + 'last_purge_date');
+
+    // Hanya jalankan sekali per hari
+    if (lastRunStr === todayStr) return;
+
+    // ── 1. Participants: hapus hanya yang NOT_STARTED dari hari sebelumnya
+    const rawParts = localStorage.getItem(STORAGE_PREFIX + 'participants');
+    if (rawParts) {
+      try {
+        const parts = JSON.parse(rawParts);
+        const kept = parts.filter((p: any) => {
+          // Pertahankan semua yang sudah submit atau hari ini
+          if (p.status === 'submitted' || p.status === 'force_submitted') return true;
+          // Pertahankan jika mulai hari ini
+          if (p.start_time && new Date(p.start_time).toDateString() === todayStr) return true;
+          // Buang sesi tidak selesai dari hari sebelumnya
+          return false;
+        });
+        localStorage.setItem(STORAGE_PREFIX + 'participants', JSON.stringify(kept));
+      } catch (_) {}
     }
+
+    // ── 2. Exam results: jangan hapus sama sekali — tetap pertahankan semua hasil
+    // (exam_results hanya berisi data yang sudah final/graded, tidak perlu dibersihkan)
+
+    // ── 3. Answers: hapus hanya jawaban dari sesi in_progress yang sudah dibuang
+    const rawAnswers = localStorage.getItem(STORAGE_PREFIX + 'answers');
+    if (rawAnswers) {
+      try {
+        const answers = JSON.parse(rawAnswers);
+        const rawPartsKept = localStorage.getItem(STORAGE_PREFIX + 'participants');
+        const keptPartIds = new Set(
+          (rawPartsKept ? JSON.parse(rawPartsKept) : []).map((p: any) => p.id)
+        );
+        const keptAnswers = answers.filter((a: any) => keptPartIds.has(a.participant_id));
+        localStorage.setItem(STORAGE_PREFIX + 'answers', JSON.stringify(keptAnswers));
+      } catch (_) {}
+    }
+
+    // ── 4. Events: pertahankan semua events hari ini, hapus yang terlalu lama (> 7 hari)
+    const rawEvents = localStorage.getItem(STORAGE_PREFIX + 'events');
+    if (rawEvents) {
+      try {
+        const events = JSON.parse(rawEvents);
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const keptEvents = events.filter((ev: any) =>
+          !ev.created_at || new Date(ev.created_at).getTime() >= sevenDaysAgo
+        );
+        localStorage.setItem(STORAGE_PREFIX + 'events', JSON.stringify(keptEvents));
+      } catch (_) {}
+    }
+
+    localStorage.setItem(STORAGE_PREFIX + 'last_purge_date', todayStr);
+    console.log('[MitraExam] Daily purge: cleaned up stale sessions from previous days.');
   } catch (e) {
     console.error('Auto purge failed', e);
   }
