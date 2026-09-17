@@ -1087,4 +1087,29 @@ class DBService {
   }
 }
 
+// Auto-purge old test data on a new day to clear out previous days' experiments
+(function autoPurgeOldTestData() {
+  try {
+    const lastRunStr = localStorage.getItem('mitracbt_last_purge_date');
+    const todayStr = new Date().toDateString();
+    
+    // Also force purge once right now if the user just updated to this version
+    const forcePurgeVersion = 'v1.0.1';
+    const lastPurgeVersion = localStorage.getItem('mitracbt_purge_version');
+    
+    if (lastRunStr !== todayStr || lastPurgeVersion !== forcePurgeVersion) {
+      localStorage.removeItem('mitracbt_events');
+      localStorage.removeItem('mitracbt_participants');
+      localStorage.removeItem('mitracbt_exam_results');
+      localStorage.removeItem('mitracbt_answers');
+      
+      localStorage.setItem('mitracbt_last_purge_date', todayStr);
+      localStorage.setItem('mitracbt_purge_version', forcePurgeVersion);
+      console.log('Daily auto-purge executed: cleared old test data.');
+    }
+  } catch (e) {
+    console.error('Auto purge failed', e);
+  }
+})();
+
 export const db = new DBService();
