@@ -155,6 +155,7 @@ export interface ExamParticipant {
   passed?: boolean;
   tab_switch_count: number;
   cheat_warning_count: number;
+  class_name?: string;
   student?: Student;
   exam?: Exam;
 }

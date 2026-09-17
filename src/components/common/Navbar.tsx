@@ -9,7 +9,8 @@ import {
   LogOut,
   Layers,
   Menu,
-  X
+  X,
+  Eye
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
 
@@ -36,6 +37,11 @@ export const Navbar: React.FC<NavbarProps> = ({ isMobileMenuOpen, onToggleMobile
       title: 'Siswa / Peserta',
       badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
       icon: GraduationCap
+    },
+    pengawas: {
+      title: 'Pengawas Ujian',
+      badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
+      icon: Eye
     }
   };
 
