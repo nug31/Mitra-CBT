@@ -29,6 +29,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
   const [participants, setParticipants] = useState<ExamParticipant[]>([]);
   const [events, setEvents] = useState<ExamEvent[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'in_progress' | 'submitted' | 'warning'>('all');
+  const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
 
   useEffect(() => {
     loadExams();
@@ -291,12 +292,34 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
   const notStartedCount = participants.filter(p => p.status === 'not_started').length;
   const warningCount = participants.filter(p => (p.cheat_warning_count || 0) > 0).length;
 
+  // Extract unique classes for filter dropdown
+  const uniqueClasses = Array.from(new Set(participants.map(p => p.student?.class?.name || p.class_name || 'Tanpa Kelas'))).sort();
+
   // Filter list
   const filteredParticipants = participants.filter(p => {
-    if (activeFilter === 'in_progress') return p.status === 'in_progress';
-    if (activeFilter === 'submitted') return p.status === 'submitted' || p.status === 'force_submitted';
-    if (activeFilter === 'warning') return (p.cheat_warning_count || 0) > 0;
+    // 1. Status filter
+    let statusMatch = true;
+    if (activeFilter === 'in_progress') statusMatch = p.status === 'in_progress';
+    else if (activeFilter === 'submitted') statusMatch = p.status === 'submitted' || p.status === 'force_submitted';
+    else if (activeFilter === 'warning') statusMatch = (p.cheat_warning_count || 0) > 0;
+    
+    if (!statusMatch) return false;
+
+    // 2. Class filter
+    if (selectedClassFilter !== 'all') {
+      const pClass = p.student?.class?.name || p.class_name || 'Tanpa Kelas';
+      if (pClass !== selectedClassFilter) return false;
+    }
+
     return true;
+  });
+
+  const filteredEvents = events.filter(ev => {
+    if (selectedClassFilter === 'all') return true;
+    // Find the participant to check their class
+    const part = participants.find(p => p.id === ev.participant_id || p.student_id === ev.participant_id);
+    const pClass = part?.student?.class?.name || part?.class_name || 'Tanpa Kelas';
+    return pClass === selectedClassFilter;
   });
 
   return (
@@ -336,6 +359,22 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
                 <option key={ex.id} value={ex.id}>
                   {ex.title} ({ex.class?.name})
                 </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-600 uppercase shrink-0">
+              Filter Kelas:
+            </label>
+            <select
+              value={selectedClassFilter}
+              onChange={(e) => setSelectedClassFilter(e.target.value)}
+              className="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 min-w-[120px]"
+            >
+              <option value="all">Semua Kelas</option>
+              {uniqueClasses.map(c => (
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -591,10 +630,10 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
           </div>
 
           <div className="space-y-2.5 max-h-[550px] overflow-y-auto pr-1">
-            {events.length === 0 ? (
+            {filteredEvents.length === 0 ? (
               <p className="text-xs text-slate-400 text-center py-8">Belum ada aktivitas tercatat</p>
             ) : (
-              events.map((ev) => {
+              filteredEvents.map((ev) => {
                 let badgeColor = 'bg-slate-100 text-slate-700';
                 let eventLabel = ev.event_type.replace('_', ' ');
                 if (ev.event_type === 'TAB_SWITCH') {

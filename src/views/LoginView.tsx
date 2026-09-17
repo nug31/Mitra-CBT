@@ -158,7 +158,7 @@ const ALLOWED_EXAM_CLASSES: ClassRoom[] = [
               }`}
             >
               <BookOpen className="w-4 h-4 text-brand-600 shrink-0" />
-              <span className="truncate">Guru &amp; Admin</span>
+              <span className="truncate">Staf / Guru / Pengawas</span>
             </button>
           </div>
 
@@ -282,7 +282,7 @@ const ALLOWED_EXAM_CLASSES: ClassRoom[] = [
             </form>
           )}
 
-          {/* ── TAB 2: GURU & ADMIN LOGIN ── */}
+          {/* ── TAB 2: GURU, ADMIN, & PENGAWAS LOGIN ── */}
           {activeTab === 'guru_admin' && (
             <form onSubmit={handleSubmitTeacher} className="space-y-4">
               {/* Info card */}

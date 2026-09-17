@@ -100,6 +100,13 @@ const MainLayout: React.FC = () => {
               {activeTab === 'audit' && <AuditLogView />}
             </>
           )}
+
+          {/* Pengawas Menus */}
+          {role === 'pengawas' && (
+            <>
+              {activeTab === 'monitoring' && <LiveMonitoringView initialExamId={selectedExamId} />}
+            </>
+          )}
         </main>
       </div>
     </div>

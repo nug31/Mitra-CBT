@@ -109,6 +109,15 @@ export const INITIAL_PROFILES: Profile[] = [
     avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
     phone: '081234567890',
     created_at: '2024-07-01T08:00:00Z'
+  },
+  {
+    id: 'user-pengawas-01',
+    email: 'pengawas@mitracbt.id',
+    full_name: 'Pengawas Ruangan',
+    role: 'pengawas',
+    avatar_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=120&auto=format&fit=crop&q=80',
+    phone: '081234567892',
+    created_at: '2024-07-01T08:00:00Z'
   }
 ];
 

@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'guru' | 'siswa';
+export type Role = 'admin' | 'guru' | 'siswa' | 'pengawas';
 
 export interface Profile {
   id: string;

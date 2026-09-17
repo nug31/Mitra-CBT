@@ -63,7 +63,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'riwayat', label: 'Hasil & Riwayat Asesmen', icon: History }
   ];
 
-  const menus = role === 'guru' ? guruMenus : role === 'admin' ? adminMenus : siswaMenus;
+  const pengawasMenus: MenuItem[] = [
+    { id: 'monitoring', label: 'Live Monitoring CBT', icon: Activity, badge: 'Realtime' },
+  ];
+
+  const menus = role === 'guru' ? guruMenus : role === 'admin' ? adminMenus : role === 'pengawas' ? pengawasMenus : siswaMenus;
 
   return (
     <>
