@@ -837,6 +837,76 @@ class DBService {
     return updated;
   }
 
+  /** Riwayat semua percobaan ujian seorang siswa — dipakai fitur "Reset Ujian" di Manajemen Pengguna. */
+  async getStudentExamAttempts(studentId: string): Promise<{
+    participantId: string;
+    examId: string;
+    examTitle: string;
+    status: ExamParticipantStatus;
+    score?: number;
+    tab_switch_count: number;
+    cheat_warning_count: number;
+  }[]> {
+    const client = requireClient();
+    const { data, error } = await client
+      .from('exam_participants')
+      .select('id, exam_id, status, score, tab_switch_count, cheat_warning_count, exam:exams(title)')
+      .eq('student_id', studentId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map((row: any) => ({
+      participantId: row.id,
+      examId: row.exam_id,
+      examTitle: row.exam?.title || 'Ujian',
+      status: row.status,
+      score: row.score ?? undefined,
+      tab_switch_count: row.tab_switch_count,
+      cheat_warning_count: row.cheat_warning_count
+    }));
+  }
+
+  /**
+   * Reset satu sesi ujian siswa ke kondisi awal (belum mulai) supaya bisa
+   * mengerjakan ulang — menghapus jawaban, log pelanggaran, dan hasil lama
+   * sesi tersebut. Dipakai saat force-submit terjadi karena false-positive
+   * (mis. deteksi tab-switch keliru saat proses login/scan QR).
+   */
+  async resetParticipantSession(participantId: string): Promise<void> {
+    const client = requireClient();
+    const { data: p, error: pErr } = await client
+      .from('exam_participants')
+      .select('exam_id')
+      .eq('id', participantId)
+      .maybeSingle();
+    if (pErr) throw pErr;
+    if (!p) throw new Error('Sesi peserta tidak ditemukan');
+
+    const exam = await this.getExamById(p.exam_id);
+    const remainingSeconds = (exam?.duration_minutes || 90) * 60;
+
+    await client.from('answers').delete().eq('participant_id', participantId);
+    await client.from('exam_events').delete().eq('participant_id', participantId);
+    await client.from('exam_results').delete().eq('participant_id', participantId);
+
+    const { error } = await client
+      .from('exam_participants')
+      .update({
+        status: 'not_started',
+        start_time: null,
+        finish_time: null,
+        score: 0,
+        passed: false,
+        tab_switch_count: 0,
+        cheat_warning_count: 0,
+        remaining_seconds: remainingSeconds
+      })
+      .eq('id', participantId);
+    if (error) throw error;
+
+    this.logAudit('RESET_PARTICIPANT_SESSION', 'exam_participant', participantId, {});
+    realtimeBus.emit('participant_updated', { id: participantId, status: 'not_started' });
+  }
+
   // Answers & Auto-save
   async getAnswers(participantId: string): Promise<Answer[]> {
     const client = requireClient();

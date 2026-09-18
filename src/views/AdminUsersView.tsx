@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/db';
 import { Student, Teacher, ClassRoom } from '../types';
-import { Users, GraduationCap, Search, Upload, Trash2, Pencil } from 'lucide-react';
+import { Users, GraduationCap, Search, Upload, Trash2, Pencil, RotateCcw } from 'lucide-react';
 import { ImportStudentsModal } from '../components/admin/ImportStudentsModal';
 import { EditTeacherModal } from '../components/admin/EditTeacherModal';
+import { ResetExamAttemptsModal } from '../components/admin/ResetExamAttemptsModal';
 
 export const AdminUsersView: React.FC = () => {
   const [students, setStudents]         = useState<Student[]>([]);
@@ -14,6 +15,7 @@ export const AdminUsersView: React.FC = () => {
   const [showImport, setShowImport]     = useState(false);
   const [filterClass, setFilterClass]   = useState('');
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [resettingStudent, setResettingStudent] = useState<Student | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -202,13 +204,22 @@ export const AdminUsersView: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-3.5 text-center">
-                        <button
-                          onClick={() => handleDeleteStudent(s.id, s.profile?.full_name || '')}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="Hapus siswa"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setResettingStudent(s)}
+                            className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition"
+                            title="Reset ujian siswa (agar bisa mengerjakan ulang)"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStudent(s.id, s.profile?.full_name || '')}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Hapus siswa"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -280,6 +291,14 @@ export const AdminUsersView: React.FC = () => {
           teacher={editingTeacher}
           onSuccess={loadData}
           onClose={() => setEditingTeacher(null)}
+        />
+      )}
+
+      {/* Reset Exam Attempts Modal */}
+      {resettingStudent && (
+        <ResetExamAttemptsModal
+          student={resettingStudent}
+          onClose={() => setResettingStudent(null)}
         />
       )}
     </div>
