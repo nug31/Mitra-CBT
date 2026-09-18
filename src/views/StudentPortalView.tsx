@@ -40,9 +40,7 @@ export const StudentPortalView: React.FC = () => {
   const loadStudentData = async () => {
     if (!currentStudent) return;
     const allExams = await db.getExams();
-    const cleanExams = allExams.filter(e => 
-      !['exam-01', 'exam-02', 'exam-03', 'exam-04'].includes(e.id)
-    );
+    const cleanExams = allExams;
     setExams(cleanExams);
 
     // Get participant sessions for this student
@@ -76,33 +74,15 @@ export const StudentPortalView: React.FC = () => {
 
     if (scannedExamId || scannedPin) {
       const cleanPin = (scannedPin || '').trim().toUpperCase();
-      const normPin = cleanPin.replace(/O/g, '0'); // Normalize letter O and number 0 (e.g. GTO10 -> GT010)
+      const normPin = cleanPin.replace(/O/g, '0'); // Normalize letter O and number 0 (mis. salah ketik PIN)
 
-      // Priority 1: Direct match by exam ID
+      // Priority 1: cocokkan langsung berdasarkan exam ID dari QR — akurat karena
+      // semua data ujian kini satu sumber bersama di Supabase (bukan localStorage per-device lagi).
       let targetExam = scannedExamId ? allExams.find(e => e.id === scannedExamId) : undefined;
 
-      // Priority 2: Match by PIN code (normalized)
+      // Priority 2: cocokkan berdasarkan PIN (untuk input manual PIN, bukan QR)
       if (!targetExam && cleanPin) {
-        targetExam = allExams.find(e => {
-          const ePin = (e.pin_code || '').trim().toUpperCase().replace(/O/g, '0');
-          return ePin === normPin || (normPin.startsWith('GT') && ePin.startsWith('GT'));
-        });
-      }
-
-      // Priority 3: Match by title if scanned ID or PIN contains 'GT' or 'GTO'
-      if (!targetExam && (
-        normPin.startsWith('GT') || 
-        (scannedExamId && (scannedExamId.toLowerCase().includes('gto') || scannedExamId.toLowerCase().includes('gt')))
-      )) {
-        targetExam = allExams.find(e => 
-          e.title.toLowerCase().includes('gambar teknik') || 
-          e.title.toLowerCase().includes('gto')
-        );
-      }
-
-      // Priority 4: Fallback to active exam matching student's class, never hardcode engine
-      if (!targetExam) {
-        targetExam = allExams.find(e => e.status === 'active' && (e.class_id === 'all' || e.class_id === currentStudent?.class_id)) || allExams[0];
+        targetExam = allExams.find(e => (e.pin_code || '').trim().toUpperCase().replace(/O/g, '0') === normPin);
       }
 
       if (targetExam && currentStudent) {
@@ -117,6 +97,9 @@ export const StudentPortalView: React.FC = () => {
         });
         return;
       }
+
+      // Tidak ada yang cocok — jangan menebak ujian lain, tampilkan pesan jelas.
+      alert('Ujian tidak ditemukan atau sudah tidak aktif. Silakan hubungi pengawas ruang untuk memindai ulang QR/PIN yang benar.');
     }
   };
 

@@ -118,107 +118,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: 'NISN harus diisi (minimal 5 digit).' };
       }
 
-      const students = await db.getStudents();
-      let foundStudent = students.find(
-        s => (s.nisn && s.nisn.toLowerCase() === cleanNisn.toLowerCase()) ||
-             (s.nis && s.nis.toLowerCase() === cleanNisn.toLowerCase())
-      );
+      // Cari siswa terdaftar via NISN/NIS, atau buat profile+student tamu baru
+      // (mis. saat scan QR oleh siswa yang belum diimport lewat Excel).
+      const student = await db.findOrCreateStudentByNisn(cleanNisn, displayName, classId);
 
-      // If student not found, create a temporary guest profile so QR scan still works
-      if (!foundStudent) {
-        const guestProfileId = `guest-${cleanNisn.replace(/\s+/g, '-')}`;
-        const guestStudentId = `student-guest-${cleanNisn.replace(/\s+/g, '-')}`;
-
-        // Use the name provided by the student on the login form
-        const resolvedName = displayName || `Siswa (${cleanNisn})`;
-
-        const guestProfile: Profile = {
-          id: guestProfileId,
-          email: `${cleanNisn.replace(/\s+/g, '_')}@siswa.mitracbt.id`,
-          full_name: resolvedName,
-          role: 'siswa',
-          created_at: new Date().toISOString()
-        };
-
-        foundStudent = {
-          id: guestStudentId,
-          profile_id: guestProfileId,
-          nis: cleanNisn,
-          nisn: cleanNisn,
-          class_id: classId || 'cls-tkr-1',
-          status: 'active',
-          profile: guestProfile
-        };
-
-        // Save guest profile and student to localStorage so session persists
-        const existingProfiles = await db.getProfiles();
-        if (!existingProfiles.find(p => p.id === guestProfileId)) {
-          existingProfiles.push(guestProfile);
-          localStorage.setItem('mitracbt_profiles', JSON.stringify(existingProfiles));
-          fetch('/api/cbt-sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: 'profiles', data: existingProfiles })
-          }).catch(() => {});
-        }
-
-        const existingStudents = students.filter(s => s.id !== guestStudentId);
-        existingStudents.push(foundStudent);
-        localStorage.setItem('mitracbt_students', JSON.stringify(existingStudents));
-        fetch('/api/cbt-sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key: 'students', data: existingStudents })
-        }).catch(() => {});
-      } else {
-        if (classId) {
-          foundStudent = {
-            ...foundStudent,
-            class_id: classId
-          };
-        }
-        if (displayName && foundStudent.profile) {
-          // Student found in DB: update name if user provided a more specific name
-          foundStudent = {
-            ...foundStudent,
-            profile: {
-              ...foundStudent.profile,
-              full_name: displayName
-            }
-          };
-        }
+      if (!student.profile) {
+        return { success: false, error: 'Gagal memuat profil siswa.' };
       }
 
-      // Attach class details
-      const classes = await db.getClasses();
-      const studentClass = classes.find(c => c.id === foundStudent!.class_id);
-      foundStudent = {
-        ...foundStudent,
-        class: studentClass
-      };
-
-      const profiles = await db.getProfiles();
-      const profile = profiles.find(p => p.id === foundStudent!.profile_id)
-        || foundStudent.profile
-        || {
-          id: foundStudent.profile_id,
-          email: `${cleanNisn}@siswa.mitracbt.id`,
-          full_name: displayName || foundStudent.profile?.full_name || `Siswa (${cleanNisn})`,
-          role: 'siswa' as Role,
-          created_at: new Date().toISOString()
-        };
-
-      // If displayName was provided, override the profile name
-      const finalProfile: Profile = displayName
-        ? { ...profile, full_name: displayName }
-        : profile;
-
-      setCurrentUser(finalProfile);
-      setCurrentStudent({ ...foundStudent, class: studentClass, profile: finalProfile });
+      setCurrentUser(student.profile);
+      setCurrentStudent(student);
       setCurrentTeacher(null);
       setRole('siswa');
       localStorage.setItem('mitracbt_active_role', 'siswa');
-      localStorage.setItem('mitracbt_student_id', foundStudent.id);
+      localStorage.setItem('mitracbt_student_id', student.id);
 
       return { success: true };
     } catch (err: any) {

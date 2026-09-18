@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, realtimeBus, getRealtimeChannel } from '../services/db';
+import { db, realtimeBus } from '../services/db';
 import { Exam, ExamParticipant, ExamEvent } from '../types';
 import { 
   Activity, 
@@ -38,21 +38,9 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     loadExams();
   }, []);
 
-  const isMatchingExam = (examId: string, examTitle?: string) => {
+  const isMatchingExam = (examId: string, _examTitle?: string) => {
     if (!selectedExamId) return true;
-    if (examId === selectedExamId) return true;
-    const cur = exams.find(e => e.id === selectedExamId);
-    const curTitle = (cur?.title || '').toLowerCase();
-    const otherTitle = (examTitle || '').toLowerCase();
-    const isCurEngine = curTitle.includes('konversi') || curTitle.includes('engine') || curTitle.includes('motor bakar');
-    const isOtherEngine = otherTitle.includes('konversi') || otherTitle.includes('engine') || otherTitle.includes('motor bakar') || examId === 'exam-02' || examId === 'exam-04';
-    if (isCurEngine && isOtherEngine) return true;
-
-    const isCurGto = curTitle.includes('gambar teknik') || curTitle.includes('gto') || selectedExamId === 'exam-gto-x' || selectedExamId === 'exam-01';
-    const isOtherGto = otherTitle.includes('gambar teknik') || otherTitle.includes('gto') || examId === 'exam-gto-x' || examId === 'exam-01';
-    if (isCurGto && isOtherGto) return true;
-
-    return false;
+    return examId === selectedExamId;
   };
 
   useEffect(() => {
@@ -177,10 +165,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     const exList = await db.getExams();
     setExams(exList);
     if (!selectedExamId && exList.length > 0) {
-      // Prioritize active GTO exam or active exam
-      const preferredExam = exList.find(e => e.id === 'exam-gto-x' || e.title.toLowerCase().includes('gambar teknik') || e.title.toLowerCase().includes('gto')) ||
-                            exList.find(e => e.status === 'active') || 
-                            exList[0];
+      const preferredExam = exList.find(e => e.status === 'active') || exList[0];
       setSelectedExamId(preferredExam.id);
     }
   };
@@ -191,39 +176,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
       db.getEvents(examId)
     ]);
 
-    let combinedParticipants = [...partList];
-    const curExam = exams.find(e => e.id === examId);
-    const curTitle = (curExam?.title || '').toLowerCase();
-
-    // Cross-merge engine participants if teacher is on an engine exam
-    const isEngine = curTitle.includes('konversi') || curTitle.includes('engine');
-    if (isEngine) {
-      const otherIds = exams.filter(e => e.id !== examId && (e.id === 'exam-engine-x' || e.title.toLowerCase().includes('engine') || e.title.toLowerCase().includes('konversi'))).map(e => e.id);
-      for (const oid of otherIds) {
-        const otherParts = await db.getExamParticipants(oid);
-        for (const op of otherParts) {
-          if (!combinedParticipants.find(p => p.id === op.id)) {
-            combinedParticipants.push(op);
-          }
-        }
-      }
-    }
-
-    // Cross-merge GTO participants if teacher is on GTO exam
-    const isGto = curTitle.includes('gambar teknik') || curTitle.includes('gto') || examId === 'exam-gto-x' || examId === 'exam-01';
-    if (isGto) {
-      const otherGtoIds = exams.filter(e => e.id !== examId && (e.title.toLowerCase().includes('gambar teknik') || e.title.toLowerCase().includes('gto') || e.id === 'exam-gto-x' || e.id === 'exam-01')).map(e => e.id);
-      for (const oid of otherGtoIds) {
-        const otherParts = await db.getExamParticipants(oid);
-        for (const op of otherParts) {
-          if (!combinedParticipants.find(p => p.id === op.id)) {
-            combinedParticipants.push(op);
-          }
-        }
-      }
-    }
-
-    setParticipants(combinedParticipants);
+    setParticipants(partList);
     setEvents(evList);
 
     // Ping all active students to instantly sync their state

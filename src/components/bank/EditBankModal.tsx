@@ -37,7 +37,7 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
       } else {
         setTitle('');
         setDescription('');
-        setSubjectId(subjects[0]?.id ?? 'subj-01');
+        setSubjectId(subjects[0]?.id ?? '');
         setTargetGrades(['X']);
       }
       setError(null);
@@ -89,7 +89,6 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
           description: description.trim(),
           subject_id: subjectId,
           target_grades: targetGrades,
-          teacher_id: 'teacher-01',
           question_count: 0
         });
       }

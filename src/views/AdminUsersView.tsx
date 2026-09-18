@@ -35,10 +35,7 @@ export const AdminUsersView: React.FC = () => {
 
   const handleDeleteStudent = async (studentId: string, name: string) => {
     if (!confirm(`Hapus siswa "${name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
-    // Hapus dari localStorage langsung
-    const current = await db.getStudents();
-    const updated = current.filter(s => s.id !== studentId);
-    localStorage.setItem('mitracbt_students', JSON.stringify(updated));
+    await db.deleteStudent(studentId);
     loadData();
   };
 

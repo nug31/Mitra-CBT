@@ -1,5 +1,10 @@
 export type Role = 'admin' | 'guru' | 'siswa' | 'pengawas';
 
+// Sentinel class id meaning "semua kelas" (all classes) — a real row in the
+// `classes` table (see supabase/schema_patch.sql) so exams.class_id (a NOT
+// NULL foreign key) can still reference it like any other class.
+export const ALL_CLASSES_ID = '00000000-0000-0000-0000-000000000000';
+
 export interface Profile {
   id: string;
   email: string;

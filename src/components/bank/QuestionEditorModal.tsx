@@ -12,7 +12,7 @@ import {
   XCircle,
   Layers
 } from 'lucide-react';
-import { DIAGRAM_PROYEKSI_EROPA, DIAGRAM_SIKLUS_ENGINE, DIAGRAM_ETIKET } from '../../services/mockData';
+import { DIAGRAM_PROYEKSI_EROPA, DIAGRAM_SIKLUS_ENGINE, DIAGRAM_ETIKET } from '../../assets/diagrams';
 
 interface QuestionEditorModalProps {
   isOpen: boolean;

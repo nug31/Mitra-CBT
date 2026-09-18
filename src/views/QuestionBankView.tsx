@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/db';
-import { 
-  QuestionBank, 
-  Question, 
-  Subject, 
-  SubjectMaterial, 
-  DifficultyLevel, 
-  QuestionType 
+import {
+  QuestionBank,
+  Question,
+  Subject,
+  SubjectMaterial,
+  DifficultyLevel,
+  QuestionType,
+  ALL_CLASSES_ID
 } from '../types';
 import { 
   Plus, 
@@ -185,19 +186,22 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
     try {
       const currentQuestions = await db.getQuestions();
       const bankQuestions = currentQuestions.filter(q => q.bank_id === selectedBank.id);
-      
+
       const cleanTitle = selectedBank.title.replace(/^Bank Soal (Komprehensif )?/i, '');
       const examTitle = `STS ${cleanTitle}`;
 
       const isGto = selectedBank.title.toLowerCase().includes('gambar teknik') || selectedBank.title.toLowerCase().includes('gto');
       const isEngine = selectedBank.title.toLowerCase().includes('engine') || selectedBank.title.toLowerCase().includes('konversi') || selectedBank.title.toLowerCase().includes('mesin');
       const pinCode = isGto ? 'GT010' : (isEngine ? 'ENG40' : `EX${Math.floor(100 + Math.random() * 900)}`);
-      
+
+      const assessmentTypes = await db.getAssessmentTypes();
+      const stsType = assessmentTypes.find(t => t.code === 'STS') || assessmentTypes[0];
+
       const newExam = await db.saveExam({
         title: examTitle,
-        assessment_type_id: 'eval-01', // STS
+        assessment_type_id: stsType?.id,
         subject_id: selectedBank.subject_id,
-        class_id: 'all',
+        class_id: ALL_CLASSES_ID,
         academic_year: '2024/2025',
         semester: 'Ganjil',
         duration_minutes: 90,
