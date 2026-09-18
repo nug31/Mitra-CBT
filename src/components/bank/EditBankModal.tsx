@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { QuestionBank, Subject } from '../../types';
-import { X, BookOpen, Layers, Check, Sparkles } from 'lucide-react';
+import { X, BookOpen, Layers, Check, Sparkles, Trash2 } from 'lucide-react';
 
 interface EditBankModalProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface EditBankModalProps {
   bank: QuestionBank | null;
   subjects: Subject[];
   onSave: (bankData: any) => Promise<void>;
+  onDelete?: (bankId: string) => Promise<void>;
 }
 
 export const EditBankModal: React.FC<EditBankModalProps> = ({
@@ -15,7 +16,8 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
   onClose,
   bank,
   subjects,
-  onSave
+  onSave,
+  onDelete
 }) => {
   const isCreate = !bank;
   const [title, setTitle] = useState('');
@@ -237,21 +239,49 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 transition disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {isSaving ? 'Menyimpan...' : (isCreate ? 'Buat Bank Soal Baru' : 'Simpan Perubahan')}
-            </button>
+          <div className="flex items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
+            {/* Delete bank button — only for existing banks */}
+            <div>
+              {!isCreate && onDelete && bank?.id && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (window.confirm(`Hapus bank soal "${bank.title}"?\n\nSEMUA butir soal di dalamnya akan ikut terhapus. Tindakan ini tidak dapat dibatalkan.`)) {
+                      try {
+                        setIsSaving(true);
+                        await onDelete(bank.id);
+                        onClose();
+                      } catch (err: any) {
+                        setError(err?.message || 'Gagal menghapus bank soal.');
+                        setIsSaving(false);
+                      }
+                    }
+                  }}
+                  disabled={isSaving}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition disabled:opacity-50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Hapus Bank Soal
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 transition disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isSaving ? 'Menyimpan...' : (isCreate ? 'Buat Bank Soal Baru' : 'Simpan Perubahan')}
+              </button>
+            </div>
           </div>
         </form>
       </div>

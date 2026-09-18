@@ -584,6 +584,20 @@ class DBService {
     return banks[idx >= 0 ? idx : banks.length - 1];
   }
 
+  async deleteQuestionBank(bankId: string): Promise<void> {
+    // Remove the bank itself
+    const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+    const filtered = banks.filter(b => b.id !== bankId);
+    setStorage('question_banks', filtered);
+
+    // Also delete all questions belonging to this bank
+    const questions = getStorage<Question[]>('questions', INITIAL_QUESTIONS);
+    const remainingQuestions = questions.filter(q => q.bank_id !== bankId);
+    setStorage('questions', remainingQuestions);
+
+    this.logAudit('DELETE_QUESTION_BANK', 'question_bank', bankId, {});
+  }
+
   // Questions
   async getQuestions(bankId?: string): Promise<Question[]> {
     const serverQuestions = await fetchFromSyncServer<Question[]>('questions');
@@ -622,6 +636,27 @@ class DBService {
         hasMoved = true;
       }
     }
+
+    // Auto-clean duplicates: Deduplicate questions by bank_id and normalized content (fixes multiple imports)
+    const seenMap = new Set<string>();
+    const uniqueQuestions: Question[] = [];
+    let hasDupes = false;
+
+    for (const q of localQuestions) {
+      const key = `${q.bank_id}:::${(q.content || '').trim().toLowerCase()}`;
+      if (!seenMap.has(key)) {
+        seenMap.add(key);
+        uniqueQuestions.push(q);
+      } else {
+        hasDupes = true;
+      }
+    }
+
+    if (hasDupes) {
+      localQuestions = uniqueQuestions;
+      hasMoved = true;
+    }
+
     if (hasMoved) {
       setStorage('questions', localQuestions);
       const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);

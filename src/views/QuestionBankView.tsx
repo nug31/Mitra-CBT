@@ -137,6 +137,20 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
     }
   };
 
+  const handleDeleteBank = async (bankId: string) => {
+    await db.deleteQuestionBank(bankId);
+    const updatedBanks = await db.getQuestionBanks();
+    setBanks(updatedBanks);
+    // Switch to first remaining bank, or clear selection
+    if (updatedBanks.length > 0) {
+      setSelectedBankId(updatedBanks[0].id);
+    } else {
+      setSelectedBankId('');
+      setQuestions([]);
+    }
+  };
+
+
   const handleImportExcelComplete = async (imported: Partial<Question>[], targetBankId?: string) => {
     const finalBankId = targetBankId || selectedBankId;
     for (const q of imported) {
@@ -662,6 +676,7 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
         bank={bankToEdit}
         subjects={subjects}
         onSave={handleSaveBank}
+        onDelete={handleDeleteBank}
       />
 
       {/* Image Zoom Modal */}
