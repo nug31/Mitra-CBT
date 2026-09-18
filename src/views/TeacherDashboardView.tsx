@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { db, realtimeBus } from '../services/db';
 import { Exam, QuestionBank, Student, ExamResult } from '../types';
-import { 
-  LayoutDashboard, 
-  CalendarClock, 
-  BookOpenCheck, 
-  Users, 
-  Trophy, 
-  ArrowRight, 
-  Activity, 
-  Clock, 
-  Plus, 
+import {
+  LayoutDashboard,
+  CalendarClock,
+  BookOpenCheck,
+  Users,
+  Trophy,
+  ArrowRight,
+  Activity,
+  Clock,
+  Plus,
   Sparkles,
   Layers,
   ChevronRight,
@@ -234,9 +234,8 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({ onNa
       <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-              violations.length > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
-            }`}>
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${violations.length > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+              }`}>
               {violations.length > 0 ? <ShieldAlert className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
             </div>
             <div>
@@ -321,11 +320,10 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({ onNa
                       </span>
                     </td>
                     <td className="p-3.5 text-center">
-                      <span className={`font-mono font-black text-xs px-2.5 py-1 rounded-md ${
-                        v.count >= 3 
-                          ? 'bg-rose-600 text-white animate-pulse' 
+                      <span className={`font-mono font-black text-xs px-2.5 py-1 rounded-md ${v.count >= 3
+                          ? 'bg-rose-600 text-white animate-pulse'
                           : 'bg-amber-100 text-amber-800 border border-amber-200'
-                      }`}>
+                        }`}>
                         {v.count >= 3 ? `Ke-${v.count} (KUNCI OTOMATIS)` : `Pelanggaran Ke-${v.count} (Maks ${v.max}x)`}
                       </span>
                     </td>
@@ -380,11 +378,10 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({ onNa
                       {ex.class?.name}
                     </span>
                     <span
-                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                        ex.status === 'active'
+                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${ex.status === 'active'
                           ? 'bg-emerald-100 text-emerald-700 animate-pulse'
                           : 'bg-slate-100 text-slate-600'
-                      }`}
+                        }`}
                     >
                       {ex.status === 'active' ? '🟢 Sedang Berlangsung' : 'Terjadwal'}
                     </span>

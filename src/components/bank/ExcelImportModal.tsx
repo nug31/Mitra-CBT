@@ -10,13 +10,14 @@ import {
   FileUp,
   HelpCircle
 } from 'lucide-react';
-import { Question, QuestionType, DifficultyLevel } from '../../types';
+import { Question, QuestionType, DifficultyLevel, QuestionBank } from '../../types';
 
 interface ExcelImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   bankId: string;
-  onImportComplete: (questions: Partial<Question>[]) => Promise<void>;
+  banks?: QuestionBank[];
+  onImportComplete: (questions: Partial<Question>[], targetBankId?: string) => Promise<void>;
 }
 
 interface ParsedRow {
@@ -39,11 +40,19 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   isOpen,
   onClose,
   bankId,
+  banks = [],
   onImportComplete
 }) => {
+  const [targetBankId, setTargetBankId] = useState<string>(bankId);
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (bankId) {
+      setTargetBankId(bankId);
+    }
+  }, [bankId, isOpen]);
 
   if (!isOpen) return null;
 
@@ -205,6 +214,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
     setIsProcessing(true);
     try {
+      const selectedTargetBank = targetBankId || bankId;
       const questionsToImport: Partial<Question>[] = validRows.map(r => {
         const options = [
           { id: 'opt-' + Math.random(), option_label: 'A', content: r.optA, is_correct: r.key.includes('A') },
@@ -219,7 +229,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         }
 
         return {
-          bank_id: bankId,
+          bank_id: selectedTargetBank,
           question_type: r.questionType,
           content: r.content,
           difficulty: r.difficulty,
@@ -229,7 +239,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         };
       });
 
-      await onImportComplete(questionsToImport);
+      await onImportComplete(questionsToImport, selectedTargetBank);
       onClose();
     } catch (err: any) {
       alert('Terjadi kesalahan saat menyimpan soal: ' + err.message);
@@ -267,6 +277,32 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+          {/* Target Bank Selector */}
+          {banks.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="space-y-0.5">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Target Bank Soal Tujuan</span>
+                </label>
+                <p className="text-[11px] text-slate-500">
+                  Pilih bank soal yang sesuai agar butir soal masuk ke mata pelajaran yang tepat
+                </p>
+              </div>
+              <select
+                value={targetBankId}
+                onChange={(e) => setTargetBankId(e.target.value)}
+                className="px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 bg-white text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shrink-0 min-w-[260px]"
+              >
+                {banks.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.title} ({b.question_count || 0} Soal)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Download Template Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
             <div className="flex items-start gap-3">

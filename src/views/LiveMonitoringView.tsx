@@ -198,7 +198,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({ initialE
     // Cross-merge engine participants if teacher is on an engine exam
     const isEngine = curTitle.includes('konversi') || curTitle.includes('engine');
     if (isEngine) {
-      const otherIds = ['exam-02', 'exam-04'].filter(id => id !== examId);
+      const otherIds = exams.filter(e => e.id !== examId && (e.id === 'exam-engine-x' || e.title.toLowerCase().includes('engine') || e.title.toLowerCase().includes('konversi'))).map(e => e.id);
       for (const oid of otherIds) {
         const otherParts = await db.getExamParticipants(oid);
         for (const op of otherParts) {

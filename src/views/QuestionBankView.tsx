@@ -54,7 +54,8 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isExcelOpen, setIsExcelOpen] = useState(false);
   const [isWordOpen, setIsWordOpen] = useState(false);
-  const [isEditBankOpen, setIsEditBankOpen] = useState(false);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [bankToEdit, setBankToEdit] = useState<QuestionBank | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -89,8 +90,32 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
     setQuestions(qList);
   };
 
-  const handleSaveBank = async (updatedBank: QuestionBank) => {
-    await db.updateQuestionBank(updatedBank);
+  const handleOpenCreateBank = () => {
+    setBankToEdit(null);
+    setIsBankModalOpen(true);
+  };
+
+  const handleOpenEditBank = () => {
+    setBankToEdit(selectedBank || null);
+    setIsBankModalOpen(true);
+  };
+
+  const handleSaveBank = async (bankData: any) => {
+    if (bankData.id) {
+      await db.updateQuestionBank(bankData);
+    } else {
+      const newBank = await db.addQuestionBank(bankData);
+      setSelectedBankId(newBank.id);
+    }
+    const updatedBanks = await db.getQuestionBanks();
+    setBanks(updatedBanks);
+  };
+
+  const handleMoveQuestion = async (questionId: string, targetBankId: string) => {
+    const q = await db.getQuestionById(questionId);
+    if (!q) return;
+    await db.saveQuestion({ ...q, bank_id: targetBankId });
+    await loadQuestions(selectedBankId);
     const updatedBanks = await db.getQuestionBanks();
     setBanks(updatedBanks);
   };
@@ -112,20 +137,30 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
     }
   };
 
-  const handleImportExcelComplete = async (imported: Partial<Question>[]) => {
+  const handleImportExcelComplete = async (imported: Partial<Question>[], targetBankId?: string) => {
+    const finalBankId = targetBankId || selectedBankId;
     for (const q of imported) {
-      await db.saveQuestion(q as any);
+      await db.saveQuestion({ ...q, bank_id: finalBankId } as any);
     }
-    await loadQuestions(selectedBankId);
+    if (finalBankId !== selectedBankId) {
+      setSelectedBankId(finalBankId);
+    } else {
+      await loadQuestions(selectedBankId);
+    }
     const updatedBanks = await db.getQuestionBanks();
     setBanks(updatedBanks);
   };
 
-  const handleImportWordComplete = async (imported: Partial<Question>[]) => {
+  const handleImportWordComplete = async (imported: Partial<Question>[], targetBankId?: string) => {
+    const finalBankId = targetBankId || selectedBankId;
     for (const q of imported) {
-      await db.saveQuestion(q as any);
+      await db.saveQuestion({ ...q, bank_id: finalBankId } as any);
     }
-    await loadQuestions(selectedBankId);
+    if (finalBankId !== selectedBankId) {
+      setSelectedBankId(finalBankId);
+    } else {
+      await loadQuestions(selectedBankId);
+    }
     const updatedBanks = await db.getQuestionBanks();
     setBanks(updatedBanks);
   };
@@ -139,16 +174,20 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
       
       const cleanTitle = selectedBank.title.replace(/^Bank Soal (Komprehensif )?/i, '');
       const examTitle = `STS ${cleanTitle}`;
+
+      const isGto = selectedBank.title.toLowerCase().includes('gambar teknik') || selectedBank.title.toLowerCase().includes('gto');
+      const isEngine = selectedBank.title.toLowerCase().includes('engine') || selectedBank.title.toLowerCase().includes('konversi') || selectedBank.title.toLowerCase().includes('mesin');
+      const pinCode = isGto ? 'GT010' : (isEngine ? 'ENG40' : `EX${Math.floor(100 + Math.random() * 900)}`);
       
       const newExam = await db.saveExam({
         title: examTitle,
         assessment_type_id: 'eval-01', // STS
         subject_id: selectedBank.subject_id,
-        class_id: 'cls-tkr-1',
+        class_id: 'all',
         academic_year: '2024/2025',
         semester: 'Ganjil',
         duration_minutes: 90,
-        question_count: bankQuestions.length || selectedBank.question_count || 28,
+        question_count: bankQuestions.length || selectedBank.question_count || 25,
         kkm: 75,
         randomize_questions: true,
         randomize_options: true,
@@ -157,7 +196,7 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
         single_attempt: true,
         show_results_immediately: true,
         show_explanation: true,
-        pin_code: 'GTO10',
+        pin_code: pinCode,
         status: 'active',
         start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
         end_time: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
@@ -223,7 +262,15 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            onClick={handleOpenCreateBank}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition shadow-xs"
+          >
+            <Plus className="w-4 h-4 text-emerald-400" />
+            <span>Tambah Bank Soal</span>
+          </button>
+
           <button
             onClick={() => setIsWordOpen(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 text-xs font-semibold transition shadow-2xs"
@@ -351,7 +398,7 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
               </button>
 
               <button
-                onClick={() => setIsEditBankOpen(true)}
+                onClick={handleOpenEditBank}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 border border-slate-200 text-slate-700 text-xs font-bold transition"
               >
                 <Settings className="w-3.5 h-3.5 text-slate-500" />
@@ -458,6 +505,22 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
                     <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
                       Bobot: {q.weight}
                     </span>
+
+                    {/* Move to another bank dropdown */}
+                    {banks.length > 1 && (
+                      <select
+                        value={q.bank_id}
+                        onChange={(e) => handleMoveQuestion(q.id, e.target.value)}
+                        title="Pindahkan butir soal ini ke Bank Soal lain"
+                        className="text-[11px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg px-2 py-1 transition cursor-pointer"
+                      >
+                        {banks.map(b => (
+                          <option key={b.id} value={b.id}>
+                            {b.id === q.bank_id ? '📍 Bank Ini' : `↗ Pindah: ${b.title.length > 20 ? b.title.substring(0, 20) + '...' : b.title}`}
+                          </option>
+                        ))}
+                      </select>
+                    )}
 
                     <button
                       onClick={() => {
@@ -579,6 +642,7 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
         isOpen={isExcelOpen}
         onClose={() => setIsExcelOpen(false)}
         bankId={selectedBankId}
+        banks={banks}
         onImportComplete={handleImportExcelComplete}
       />
 
@@ -587,14 +651,15 @@ export const QuestionBankView: React.FC<QuestionBankViewProps> = ({ onNavigateTo
         isOpen={isWordOpen}
         onClose={() => setIsWordOpen(false)}
         bankId={selectedBankId}
+        banks={banks}
         onImportComplete={handleImportWordComplete}
       />
 
-      {/* Edit Bank Modal */}
+      {/* Edit / Create Bank Modal */}
       <EditBankModal
-        isOpen={isEditBankOpen}
-        onClose={() => setIsEditBankOpen(false)}
-        bank={selectedBank || null}
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        bank={bankToEdit}
         subjects={subjects}
         onSave={handleSaveBank}
       />

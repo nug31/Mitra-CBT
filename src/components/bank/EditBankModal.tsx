@@ -7,7 +7,7 @@ interface EditBankModalProps {
   onClose: () => void;
   bank: QuestionBank | null;
   subjects: Subject[];
-  onSave: (updatedBank: QuestionBank) => Promise<void>;
+  onSave: (bankData: any) => Promise<void>;
 }
 
 export const EditBankModal: React.FC<EditBankModalProps> = ({
@@ -17,6 +17,7 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
   subjects,
   onSave
 }) => {
+  const isCreate = !bank;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subjectId, setSubjectId] = useState('');
@@ -25,16 +26,23 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (bank && isOpen) {
-      setTitle(bank.title || '');
-      setDescription(bank.description || '');
-      setSubjectId(bank.subject_id || (subjects[0]?.id ?? ''));
-      setTargetGrades(bank.target_grades && bank.target_grades.length > 0 ? [...bank.target_grades] : ['X']);
+    if (isOpen) {
+      if (bank) {
+        setTitle(bank.title || '');
+        setDescription(bank.description || '');
+        setSubjectId(bank.subject_id || (subjects[0]?.id ?? ''));
+        setTargetGrades(bank.target_grades && bank.target_grades.length > 0 ? [...bank.target_grades] : ['X']);
+      } else {
+        setTitle('');
+        setDescription('');
+        setSubjectId(subjects[0]?.id ?? 'subj-01');
+        setTargetGrades(['X']);
+      }
       setError(null);
     }
   }, [bank, isOpen, subjects]);
 
-  if (!isOpen || !bank) return null;
+  if (!isOpen) return null;
 
   const toggleGrade = (grade: string) => {
     setTargetGrades(prev => {
@@ -65,16 +73,27 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
 
     setIsSaving(true);
     try {
-      await onSave({
-        ...bank,
-        title: title.trim(),
-        description: description.trim(),
-        subject_id: subjectId,
-        target_grades: targetGrades
-      });
+      if (bank?.id) {
+        await onSave({
+          ...bank,
+          title: title.trim(),
+          description: description.trim(),
+          subject_id: subjectId,
+          target_grades: targetGrades
+        });
+      } else {
+        await onSave({
+          title: title.trim(),
+          description: description.trim(),
+          subject_id: subjectId,
+          target_grades: targetGrades,
+          teacher_id: 'teacher-01',
+          question_count: 0
+        });
+      }
       onClose();
     } catch (err: any) {
-      setError(err?.message || 'Gagal menyimpan perubahan bank soal.');
+      setError(err?.message || 'Gagal menyimpan bank soal.');
     } finally {
       setIsSaving(false);
     }
@@ -91,10 +110,12 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-extrabold text-slate-900">
-                Pengaturan & Target Kelas Bank Soal
+                {isCreate ? 'Buat Bank Soal Baru' : 'Pengaturan & Target Kelas Bank Soal'}
               </h2>
               <p className="text-xs text-slate-500">
-                Atur judul, deskripsi, dan peruntukan tingkat kelas soal
+                {isCreate 
+                  ? 'Buat wadah baru untuk butir soal evaluasi kejuruan atau umum' 
+                  : 'Atur judul, deskripsi, dan peruntukan tingkat kelas soal'}
               </p>
             </div>
           </div>
@@ -229,7 +250,7 @@ export const EditBankModal: React.FC<EditBankModalProps> = ({
               disabled={isSaving}
               className="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 transition disabled:opacity-50 flex items-center gap-1.5"
             >
-              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              {isSaving ? 'Menyimpan...' : (isCreate ? 'Buat Bank Soal Baru' : 'Simpan Perubahan')}
             </button>
           </div>
         </form>

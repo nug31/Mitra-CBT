@@ -41,6 +41,156 @@ async function fetchFromSyncServer<T>(key: string): Promise<T | null> {
   return null;
 }
 
+// ─── Supabase Persistence Helpers ──────────────────────────────────────────
+// Tabel: cbt_participants & cbt_results (TEXT IDs, kompatibel dengan ID lokal)
+
+async function upsertParticipantToSupabase(participant: ExamParticipant): Promise<void> {
+  if (!supabase) return;
+  try {
+    const row = {
+      local_id: participant.id,
+      exam_id: participant.exam_id,
+      student_id: participant.student_id,
+      student_name: participant.student?.profile?.full_name || '',
+      class_name: participant.class_name || participant.student?.class?.name || '',
+      nis: participant.student?.nis || '',
+      status: participant.status,
+      start_time: participant.start_time || null,
+      finish_time: participant.finish_time || null,
+      score: participant.score ?? null,
+      passed: participant.passed ?? null,
+      tab_switch_count: participant.tab_switch_count,
+      cheat_warning_count: participant.cheat_warning_count,
+      remaining_seconds: participant.remaining_seconds ?? null,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabase
+      .from('cbt_participants')
+      .upsert(row, { onConflict: 'exam_id,student_id' });
+    if (error) console.warn('[Supabase] upsert participant:', error.message);
+  } catch (err) {
+    console.warn('[Supabase] upsertParticipant failed:', err);
+  }
+}
+
+async function upsertResultToSupabase(result: ExamResult): Promise<void> {
+  if (!supabase) return;
+  try {
+    const p = result.participant;
+    const row = {
+      local_id: result.id,
+      exam_id: result.exam_id,
+      participant_local_id: result.participant_id,
+      student_name: p?.student?.profile?.full_name || '',
+      class_name: p?.class_name || p?.student?.class?.name || '',
+      nis: p?.student?.nis || '',
+      total_score: result.total_score,
+      max_possible_score: result.max_possible_score,
+      percentage: result.percentage,
+      correct_count: result.correct_count,
+      wrong_count: result.wrong_count,
+      unattempted_count: result.unattempted_count,
+      passed: result.passed,
+      graded_at: result.graded_at
+    };
+    const { error } = await supabase
+      .from('cbt_results')
+      .upsert(row, { onConflict: 'local_id' });
+    if (error) console.warn('[Supabase] upsert result:', error.message);
+  } catch (err) {
+    console.warn('[Supabase] upsertResult failed:', err);
+  }
+}
+
+async function fetchParticipantsFromSupabase(examId: string): Promise<Partial<ExamParticipant>[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('cbt_participants')
+      .select('*')
+      .eq('exam_id', examId);
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      id: row.local_id,
+      exam_id: row.exam_id,
+      student_id: row.student_id,
+      class_name: row.class_name,
+      status: row.status as ExamParticipantStatus,
+      start_time: row.start_time,
+      finish_time: row.finish_time,
+      score: row.score,
+      passed: row.passed,
+      tab_switch_count: row.tab_switch_count,
+      cheat_warning_count: row.cheat_warning_count,
+      remaining_seconds: row.remaining_seconds
+    }));
+  } catch (err) {
+    console.warn('[Supabase] fetchParticipants failed:', err);
+    return [];
+  }
+}
+
+async function fetchResultsFromSupabase(examId: string): Promise<Partial<ExamResult>[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('cbt_results')
+      .select('*')
+      .eq('exam_id', examId);
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      id: row.local_id,
+      exam_id: row.exam_id,
+      participant_id: row.participant_local_id,
+      total_score: row.total_score,
+      max_possible_score: row.max_possible_score,
+      percentage: row.percentage,
+      correct_count: row.correct_count,
+      wrong_count: row.wrong_count,
+      unattempted_count: row.unattempted_count,
+      passed: row.passed,
+      graded_at: row.graded_at
+    }));
+  } catch (err) {
+    console.warn('[Supabase] fetchResults failed:', err);
+    return [];
+  }
+}
+
+async function fetchParticipantFromSupabase(
+  examId: string,
+  studentId: string
+): Promise<Partial<ExamParticipant> | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('cbt_participants')
+      .select('*')
+      .eq('exam_id', examId)
+      .eq('student_id', studentId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return {
+      id: data.local_id,
+      exam_id: data.exam_id,
+      student_id: data.student_id,
+      class_name: data.class_name,
+      status: data.status as ExamParticipantStatus,
+      start_time: data.start_time,
+      finish_time: data.finish_time,
+      score: data.score,
+      passed: data.passed,
+      tab_switch_count: data.tab_switch_count,
+      cheat_warning_count: data.cheat_warning_count,
+      remaining_seconds: data.remaining_seconds
+    };
+  } catch (err) {
+    console.warn('[Supabase] fetchParticipant failed:', err);
+    return null;
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function getStorage<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + key);
@@ -391,9 +541,12 @@ class DBService {
   async getQuestionBanks(): Promise<QuestionBank[]> {
     let banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
     
-    // Purge mock bank-02 or engine banks from localStorage
-    banks = banks.filter(b => b.id !== 'bank-02' && !b.title.toLowerCase().includes('motor bakar') && !b.title.toLowerCase().includes('konversi'));
-    setStorage('question_banks', banks);
+    // Ensure both bank-01 (GTO) and bank-02 (Engine) exist in localStorage
+    const defaultEngineBank = INITIAL_QUESTION_BANKS.find(b => b.id === 'bank-02');
+    if (defaultEngineBank && !banks.some(b => b.id === 'bank-02')) {
+      banks.push(defaultEngineBank);
+      setStorage('question_banks', banks);
+    }
 
     const questions = await this.getQuestions();
     const subjects = await this.getSubjects();
@@ -448,13 +601,34 @@ class DBService {
       setStorage('questions', localQuestions);
     }
 
-    // Auto-clean: purge mock placeholder questions ('q-01' through 'q-28' and any bank-02 questions)
+    // Auto-clean: purge mock old placeholder questions ('q-01' through 'q-28' only if they aren't part of bank-02)
+    const mockOldIds = ['q-01', 'q-02', 'q-03', 'q-04', 'q-05', 'q-06', 'q-07', 'q-08', 'q-09', 'q-10'];
     const cleaned = localQuestions.filter(
-      q => q.bank_id !== 'bank-02' && !['q-01', 'q-02', 'q-03', 'q-04', 'q-05', 'q-06', 'q-07', 'q-08', 'q-09', 'q-10', 'q-11', 'q-12', 'q-13', 'q-14', 'q-15', 'q-16', 'q-17', 'q-18', 'q-19', 'q-20', 'q-21', 'q-22', 'q-23', 'q-24', 'q-25', 'q-26', 'q-27', 'q-28'].includes(q.id)
+      q => !(mockOldIds.includes(q.id) && q.bank_id !== 'bank-02')
     );
     if (cleaned.length !== localQuestions.length) {
       localQuestions = cleaned;
       setStorage('questions', localQuestions);
+    }
+
+    // Auto-Repair: Separate imported Engine questions from bank-01 (GTO)
+    // All 25 authentic GTO questions have IDs starting with 'q-gto-'
+    // Any question currently filed under bank-01 with a non-GTO ID (e.g. imported questions)
+    // belongs to bank-02 (Engine). Move them safely!
+    let hasMoved = false;
+    for (const q of localQuestions) {
+      if (q.bank_id === 'bank-01' && !q.id.startsWith('q-gto-')) {
+        q.bank_id = 'bank-02';
+        hasMoved = true;
+      }
+    }
+    if (hasMoved) {
+      setStorage('questions', localQuestions);
+      const banks = getStorage<QuestionBank[]>('question_banks', INITIAL_QUESTION_BANKS);
+      banks.forEach(b => {
+        b.question_count = localQuestions.filter(item => item.bank_id === b.id).length;
+      });
+      setStorage('question_banks', banks);
     }
 
     if (!bankId) return localQuestions;
@@ -548,14 +722,9 @@ class DBService {
       setStorage('exams', localExams);
     }
 
-    // Purge mock dummy exams (exam-01, exam-02, exam-03, exam-04, or any exam containing "Konversi", "Engine", "Motor Bakar")
+    // Purge only legacy mock dummy exam IDs if present
     const dummyIds = ['exam-01', 'exam-02', 'exam-03', 'exam-04'];
-    const filteredExams = localExams.filter(e => {
-      if (dummyIds.includes(e.id)) return false;
-      const lower = (e.title || '').toLowerCase();
-      if (lower.includes('konversi') || lower.includes('motor bakar')) return false;
-      return true;
-    });
+    const filteredExams = localExams.filter(e => !dummyIds.includes(e.id));
 
     if (filteredExams.length !== localExams.length) {
       localExams.splice(0, localExams.length, ...filteredExams);
@@ -596,15 +765,53 @@ class DBService {
       localExams.unshift(newGtoExam);
       setStorage('exams', localExams);
     } else {
-      // Keep GTO active, ensure pin_code is GT010, class is all, and questions are synced
+      // Keep GTO active, ensure pin_code is GT010, class is all, and questions are strictly GTO (25 questions)
       gtoExam.status = 'active';
       gtoExam.pin_code = 'GT010';
       gtoExam.class_id = 'all';
-      if (gtoQuestions.length > 0 && (!gtoExam.questions || gtoExam.questions.length !== gtoQuestions.length)) {
-        gtoExam.question_count = gtoQuestions.length;
-        gtoExam.questions = gtoQuestions;
-      }
+      gtoExam.question_count = gtoQuestions.length || 25;
+      gtoExam.questions = gtoQuestions;
       setStorage('exams', localExams);
+    }
+
+    // Auto-sync: If Engine questions exist in bank-02, ensure STS Engine exam exists or is updated with 25 questions
+    const engineQuestions = storedQuestions.filter(q => q.bank_id === 'bank-02');
+    if (engineQuestions.length > 0) {
+      let engineExam = localExams.find(e => e.id === 'exam-engine-x' || (e.title.toLowerCase().includes('engine') && !e.title.toLowerCase().includes('gambar teknik')));
+      if (!engineExam) {
+        const newEngineExam: Exam = {
+          id: 'exam-engine-x',
+          title: 'STS Dasar Konversi Energi & Engine Otomotif Kelas X',
+          assessment_type_id: 'eval-01',
+          subject_id: 'subj-02',
+          class_id: 'all',
+          teacher_id: 'teacher-01',
+          academic_year: '2024/2025',
+          semester: 'Ganjil',
+          start_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          end_time: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+          duration_minutes: 90,
+          question_count: engineQuestions.length,
+          kkm: 75,
+          randomize_questions: true,
+          randomize_options: true,
+          allow_backward: true,
+          fullscreen_mode: true,
+          single_attempt: true,
+          show_results_immediately: true,
+          show_explanation: true,
+          pin_code: 'ENG40',
+          status: 'active',
+          questions: engineQuestions
+        };
+        localExams.push(newEngineExam);
+        setStorage('exams', localExams);
+      } else {
+        engineExam.questions = engineQuestions;
+        engineExam.question_count = engineQuestions.length;
+        if (!engineExam.pin_code) engineExam.pin_code = 'ENG40';
+        setStorage('exams', localExams);
+      }
     }
 
     const types = await this.getAssessmentTypes();
@@ -691,6 +898,29 @@ class DBService {
       }
       setStorage('participants', participants);
     }
+
+    // Merge dari Supabase (sumber kebenaran permanen)
+    const supabaseParts = await fetchParticipantsFromSupabase(examId);
+    if (supabaseParts.length > 0) {
+      let changed = false;
+      for (const sp of supabaseParts) {
+        const idx = participants.findIndex(p => p.id === sp.id);
+        if (idx >= 0) {
+          // Perbarui hanya jika status di Supabase lebih final
+          const curr = participants[idx];
+          const statusRank: Record<string, number> = { not_started: 0, in_progress: 1, submitted: 2, force_submitted: 2 };
+          if ((statusRank[sp.status!] ?? 0) >= (statusRank[curr.status] ?? 0)) {
+            participants[idx] = { ...curr, ...sp };
+            changed = true;
+          }
+        } else {
+          participants.push(sp as ExamParticipant);
+          changed = true;
+        }
+      }
+      if (changed) setStorage('participants', participants);
+    }
+
     const students = await this.getStudents();
     const exam = await this.getExamById(examId);
 
@@ -719,22 +949,39 @@ class DBService {
     }
     let session = participants.find(p => p.exam_id === examId && p.student_id === studentId);
 
+    const students = await this.getStudents();
+    const exam = await this.getExamById(examId);
+
     if (!session) {
-      const students = await this.getStudents();
-      const exam = await this.getExamById(examId);
-      session = {
-        id: 'part-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        exam_id: examId,
-        student_id: studentId,
-        status: 'not_started',
-        tab_switch_count: 0,
-        cheat_warning_count: 0,
-        remaining_seconds: (exam?.duration_minutes || 90) * 60,
-        student: students.find(s => s.id === studentId),
-        exam
-      };
-      participants.push(session);
-      setStorage('participants', participants);
+      // Coba restore dari Supabase sebelum buat sesi baru
+      const sbSession = await fetchParticipantFromSupabase(examId, studentId);
+      if (sbSession && sbSession.id) {
+        session = {
+          ...sbSession,
+          student: students.find(s => s.id === studentId),
+          exam
+        } as ExamParticipant;
+        participants.push(session);
+        setStorage('participants', participants);
+        console.log('[MitraExam] Sesi ujian dipulihkan dari Supabase:', session.id);
+      } else {
+        // Sesi baru
+        session = {
+          id: 'part-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          exam_id: examId,
+          student_id: studentId,
+          status: 'not_started',
+          tab_switch_count: 0,
+          cheat_warning_count: 0,
+          remaining_seconds: (exam?.duration_minutes || 90) * 60,
+          student: students.find(s => s.id === studentId),
+          exam
+        };
+        participants.push(session);
+        setStorage('participants', participants);
+        // Simpan sesi baru ke Supabase
+        upsertParticipantToSupabase(session);
+      }
     }
 
     return session;
@@ -748,6 +995,9 @@ class DBService {
     const updated = { ...participants[idx], ...updates };
     participants[idx] = updated;
     setStorage('participants', participants);
+
+    // Simpan ke Supabase (async, tidak block UI)
+    upsertParticipantToSupabase(updated);
 
     // Emit realtime update for teacher live monitoring
     realtimeBus.emit('participant_updated', updated);
@@ -966,6 +1216,10 @@ class DBService {
     }
     setStorage('exam_results', results);
 
+    // Simpan hasil & peserta ke Supabase secara permanen
+    await upsertParticipantToSupabase(participant);
+    await upsertResultToSupabase(newResult);
+
     // Log submit event
     await this.logEvent(
       exam.id, 
@@ -993,6 +1247,24 @@ class DBService {
       }
       setStorage('exam_results', results);
     }
+
+    // Merge dari Supabase (sumber kebenaran permanen)
+    const supabaseResults = await fetchResultsFromSupabase(examId);
+    if (supabaseResults.length > 0) {
+      let changed = false;
+      for (const sr of supabaseResults) {
+        const idx = results.findIndex(r => r.id === sr.id);
+        if (idx >= 0) {
+          results[idx] = { ...results[idx], ...sr };
+          changed = true;
+        } else {
+          results.push(sr as ExamResult);
+          changed = true;
+        }
+      }
+      if (changed) setStorage('exam_results', results);
+    }
+
     const participants = await this.getExamParticipants(examId);
 
     return results

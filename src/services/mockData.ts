@@ -183,6 +183,16 @@ export const INITIAL_QUESTION_BANKS: QuestionBank[] = [
     target_grades: ['X'],
     created_at: '2024-08-01T08:00:00Z',
     question_count: 25
+  },
+  {
+    id: 'bank-02',
+    teacher_id: 'teacher-01',
+    subject_id: 'subj-02',
+    title: 'Bank Soal Dasar Konversi Energi & Engine Otomotif Kelas X',
+    description: 'Kumpulan butir soal motor bakar, siklus 4-langkah, sistem pendinginan, pelumasan, dan engine tune-up.',
+    target_grades: ['X'],
+    created_at: '2024-08-01T08:00:00Z',
+    question_count: 25
   }
 ];
 

@@ -41,9 +41,7 @@ export const StudentPortalView: React.FC = () => {
     if (!currentStudent) return;
     const allExams = await db.getExams();
     const cleanExams = allExams.filter(e => 
-      !['exam-01', 'exam-02', 'exam-03', 'exam-04'].includes(e.id) &&
-      !e.title.toLowerCase().includes('konversi') &&
-      !e.title.toLowerCase().includes('motor bakar')
+      !['exam-01', 'exam-02', 'exam-03', 'exam-04'].includes(e.id)
     );
     setExams(cleanExams);
 

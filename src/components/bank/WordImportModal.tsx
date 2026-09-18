@@ -16,22 +16,25 @@ import {
   Copy,
   CheckCheck
 } from 'lucide-react';
-import { Question, QuestionType, DifficultyLevel } from '../../types';
+import { Question, QuestionType, DifficultyLevel, QuestionBank } from '../../types';
 import { parseDocxFile, ParsedWordQuestion } from '../../utils/wordImport';
 
 interface WordImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   bankId: string;
-  onImportComplete: (questions: Partial<Question>[]) => Promise<void>;
+  banks?: QuestionBank[];
+  onImportComplete: (questions: Partial<Question>[], targetBankId?: string) => Promise<void>;
 }
 
 export const WordImportModal: React.FC<WordImportModalProps> = ({
   isOpen,
   onClose,
   bankId,
+  banks = [],
   onImportComplete
 }) => {
+  const [targetBankId, setTargetBankId] = useState<string>(bankId);
   const [questions, setQuestions] = useState<ParsedWordQuestion[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
@@ -40,6 +43,12 @@ export const WordImportModal: React.FC<WordImportModalProps> = ({
   const [showGuide, setShowGuide] = useState(false);
   const [copiedGuide, setCopiedGuide] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'valid' | 'invalid'>('all');
+
+  React.useEffect(() => {
+    if (bankId) {
+      setTargetBankId(bankId);
+    }
+  }, [bankId, isOpen]);
 
   if (!isOpen) return null;
 
@@ -156,9 +165,10 @@ Kunci: A`;
 
     setIsProcessing(true);
     try {
+      const selectedTargetBank = targetBankId || bankId;
       const questionsToImport: Partial<Question>[] = validList.map(q => {
         return {
-          bank_id: bankId,
+          bank_id: selectedTargetBank,
           question_type: q.questionType,
           content: q.content,
           image_url: q.imageUrl,
@@ -175,7 +185,7 @@ Kunci: A`;
         };
       });
 
-      await onImportComplete(questionsToImport);
+      await onImportComplete(questionsToImport, selectedTargetBank);
       onClose();
     } catch (err: any) {
       alert('Terjadi kesalahan saat menyimpan butir soal: ' + err.message);
@@ -223,6 +233,32 @@ Kunci: A`;
         {/* Modal Content */}
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
           
+          {/* Target Bank Selector */}
+          {banks.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="space-y-0.5">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span>Target Bank Soal Tujuan</span>
+                </label>
+                <p className="text-[11px] text-slate-500">
+                  Pilih bank soal yang sesuai agar butir soal masuk ke mata pelajaran yang tepat
+                </p>
+              </div>
+              <select
+                value={targetBankId}
+                onChange={(e) => setTargetBankId(e.target.value)}
+                className="px-3 py-2 text-xs font-bold rounded-lg border border-slate-300 bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shrink-0 min-w-[260px]"
+              >
+                {banks.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.title} ({b.question_count || 0} Soal)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Download & Guide Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-blue-50/80 border border-blue-200">
             <div className="flex items-start gap-3">
